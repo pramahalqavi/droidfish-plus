@@ -1,3 +1,4 @@
 <paths>
     <files-path path="shared/" name="myshared"/>
+    <cache-path name="camera_images" path="." />
 </paths>

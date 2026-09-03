@@ -14,4 +14,6 @@ endif
 LOCAL_CFLAGS    := --std=c++11 \
 	-I $(LOCAL_PATH)/sysport/ -I -DNDEBUG -Wall
 
+LOCAL_LDFLAGS += -Wl,-z,max-page-size=16384
+
 include $(BUILD_SHARED_LIBRARY)

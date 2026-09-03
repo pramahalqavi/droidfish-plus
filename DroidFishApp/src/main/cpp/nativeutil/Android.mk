@@ -31,5 +31,5 @@ LOCAL_CFLAGS    := -I$(LOCAL_PATH)/$(CPU_FEATS)/include \
 		   -I$(LOCAL_PATH)/$(CPU_FEATS)/include/internal \
 		   -DHAVE_DLFCN_H=1 -DSTACK_LINE_READER_BUFFER_SIZE=1024 \
 		   -fPIC -s
-LOCAL_LDFLAGS   := -fPIC -s
+LOCAL_LDFLAGS   := -fPIC -s -Wl,-z,max-page-size=16384
 include $(BUILD_SHARED_LIBRARY)

@@ -87,6 +87,7 @@ public class EditBoard extends Activity {
 
     private DrawerLayout drawerLayout;
     private ListView leftDrawer;
+    private Position clearedPosition = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -247,19 +248,25 @@ public class EditBoard extends Activity {
             }
         }
 
-        final int SIDE_TO_MOVE    = 0;
-        final int CLEAR_BOARD     = 1;
-        final int INITIAL_POS     = 2;
-        final int CASTLING_FLAGS  = 3;
-        final int EN_PASSANT_FILE = 4;
-        final int MOVE_COUNTERS   = 5;
-        final int COPY_POSITION   = 6;
-        final int PASTE_POSITION  = 7;
-        final int GET_FEN         = 8;
+        final int SIDE_TO_MOVE      = 0;
+        final int FLIP_PIECES       = 1;
+        final int FLIP_BOARD        = 2;
+        final int CLEAR_BOARD       = 3;
+        final int UNDO_CLEAR_BOARD  = 4;
+        final int INITIAL_POS       = 5;
+        final int CASTLING_FLAGS    = 6;
+        final int EN_PASSANT_FILE   = 7;
+        final int MOVE_COUNTERS     = 8;
+        final int COPY_POSITION     = 9;
+        final int PASTE_POSITION    = 10;
+        final int GET_FEN           = 11;
 
         final ArrayList<DrawerItem> leftItems = new ArrayList<>();
         leftItems.add(new DrawerItem(SIDE_TO_MOVE, R.string.side_to_move));
+        leftItems.add(new DrawerItem(FLIP_PIECES, R.string.flip_pieces));
+        leftItems.add(new DrawerItem(FLIP_BOARD, R.string.flip_board));
         leftItems.add(new DrawerItem(CLEAR_BOARD, R.string.clear_board));
+        leftItems.add(new DrawerItem(UNDO_CLEAR_BOARD, R.string.undo_clear_board));
         leftItems.add(new DrawerItem(INITIAL_POS, R.string.initial_position));
         leftItems.add(new DrawerItem(CASTLING_FLAGS, R.string.castling_flags));
         leftItems.add(new DrawerItem(EN_PASSANT_FILE, R.string.en_passant_file));
@@ -282,14 +289,41 @@ public class EditBoard extends Activity {
                 setSelection(-1);
                 checkValidAndUpdateMaterialDiff();
                 break;
+            case FLIP_PIECES:
+                clearedPosition = null;
+                flipPieces180();
+                break;
+            case FLIP_BOARD:
+                boardFlipped = !cb.flipped;
+                cb.setFlipped(boardFlipped);
+                SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putBoolean("boardFlipped", boardFlipped);
+                editor.apply();
+                break;
             case CLEAR_BOARD: {
+                if (cb.pos.nPieces() > 0) {
+                    clearedPosition = new Position(cb.pos);
+                }
                 Position pos = new Position();
                 cb.setPosition(pos);
                 setSelection(-1);
                 checkValidAndUpdateMaterialDiff();
                 break;
             }
+            case UNDO_CLEAR_BOARD: {
+                if (clearedPosition != null && cb.pos.nPieces() == 0) {
+                    cb.setPosition(new Position(clearedPosition));
+                    clearedPosition = null;
+                    setSelection(-1);
+                    checkValidAndUpdateMaterialDiff();
+                } else {
+                    DroidFishApp.toast(R.string.cannot_undo_clear_board, Toast.LENGTH_SHORT);
+                }
+                break;
+            }
             case INITIAL_POS: {
+                clearedPosition = null;
                 try {
                     Position pos = TextIO.readFEN(TextIO.startPosFEN);
                     cb.setPosition(pos);
@@ -384,6 +418,7 @@ public class EditBoard extends Activity {
                 return;
             }
         }
+        clearedPosition = null;
         Position pos = new Position(cb.pos);
         int piece;
         if (m.from >= 0) {
@@ -423,7 +458,9 @@ public class EditBoard extends Activity {
         if (checkValidAndUpdateMaterialDiff()) {
             setPosFields();
             String fen = TextIO.toFEN(cb.pos);
-            setResult(RESULT_OK, (new Intent()).setAction(fen));
+            Intent ret = (new Intent()).setAction(fen);
+            ret.putExtra("boardFlipped", boardFlipped);
+            setResult(RESULT_OK, ret);
         } else {
             setResult(RESULT_CANCELED);
         }
@@ -450,6 +487,39 @@ public class EditBoard extends Activity {
             epSquare = Position.getSquare(epFile, epRank);
         }
         cb.pos.setEpSquare(epSquare);
+    }
+
+    /** Flip piece positions 180 degrees while keeping board orientation (a1 at bottom-left). */
+    private void flipPieces180() {
+        setPosFields();
+        Position oldPos = cb.pos;
+        Position newPos = new Position();
+        newPos.whiteMove = oldPos.whiteMove;
+        newPos.halfMoveClock = oldPos.halfMoveClock;
+        newPos.fullMoveCounter = oldPos.fullMoveCounter;
+
+        for (int sq = 0; sq < 64; sq++) {
+            int piece = oldPos.getPiece(sq);
+            newPos.setPiece(63 - sq, piece);
+        }
+
+        int ep = oldPos.getEpSquare();
+        if (ep >= 0) {
+            newPos.setEpSquare(63 - ep);
+        }
+
+        int oldCastle = oldPos.getCastleMask();
+        int newCastle = 0;
+        if ((oldCastle & (1 << Position.A1_CASTLE)) != 0) newCastle |= (1 << Position.H8_CASTLE);
+        if ((oldCastle & (1 << Position.H1_CASTLE)) != 0) newCastle |= (1 << Position.A8_CASTLE);
+        if ((oldCastle & (1 << Position.A8_CASTLE)) != 0) newCastle |= (1 << Position.H1_CASTLE);
+        if ((oldCastle & (1 << Position.H8_CASTLE)) != 0) newCastle |= (1 << Position.A1_CASTLE);
+        newPos.setCastleMask(newCastle);
+
+        cb.setPosition(newPos);
+        setPosFields();
+        setSelection(-1);
+        checkValidAndUpdateMaterialDiff();
     }
 
     /** Test if a position is valid and update material diff display. */
@@ -605,6 +675,7 @@ public class EditBoard extends Activity {
     private void setFEN(String fen) {
         if (fen == null)
             return;
+        clearedPosition = null;
         try {
             Position pos = TextIO.readFEN(fen);
             cb.setPosition(pos);

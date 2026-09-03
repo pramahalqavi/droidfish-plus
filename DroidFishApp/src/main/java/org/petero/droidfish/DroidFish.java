@@ -1453,6 +1453,7 @@ public class DroidFish extends Activity
         NEW_GAME,
         SET_STRENGTH,
         EDIT_BOARD,
+        SCAN,
         SETTINGS,
         FILE_MENU,
         RESIGN,
@@ -1474,6 +1475,7 @@ public class DroidFish extends Activity
             new DrawerItem(DrawerItemId.NEW_GAME, R.string.option_new_game),
             new DrawerItem(DrawerItemId.SET_STRENGTH, R.string.set_engine_strength),
             new DrawerItem(DrawerItemId.EDIT_BOARD, R.string.option_edit_board),
+            new DrawerItem(DrawerItemId.SCAN, R.string.option_scan),
             new DrawerItem(DrawerItemId.FILE_MENU, R.string.option_file),
             new DrawerItem(DrawerItemId.SELECT_BOOK, R.string.option_select_book),
             new DrawerItem(DrawerItemId.MANAGE_ENGINES, R.string.option_manage_engines),
@@ -1528,6 +1530,11 @@ public class DroidFish extends Activity
         case EDIT_BOARD:
             startEditBoard(ctrl.getFEN());
             break;
+        case SCAN: {
+            Intent i = new Intent(DroidFish.this, org.petero.droidfish.activities.ScanActivity.class);
+            startActivityForResult(i, RESULT_EDITBOARD);
+            break;
+        }
         case SETTINGS: {
             Intent i = new Intent(DroidFish.this, Preferences.class);
             startActivityForResult(i, RESULT_SETTINGS);
@@ -1600,7 +1607,13 @@ public class DroidFish extends Activity
                 try {
                     String fen = data.getAction();
                     ctrl.setFENOrPGN(fen, true);
-                    setBoardFlip(false);
+                    if (data.hasExtra("boardFlipped")) {
+                        boardFlipped = data.getBooleanExtra("boardFlipped", false);
+                        setBooleanPref("boardFlipped", boardFlipped);
+                        cb.setFlipped(boardFlipped);
+                    } else {
+                        setBoardFlip(false);
+                    }
                 } catch (ChessParseError ignore) {
                 }
             }

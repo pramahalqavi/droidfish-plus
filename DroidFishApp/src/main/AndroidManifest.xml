@@ -99,9 +99,18 @@
                   android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
         </activity>
         <activity android:name=".activities.EditBoard"
+                  android:configChanges="keyboardHidden|orientation|screenSize"
                   android:label="@string/edit_board"
-                  android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
+                  android:exported="false">
         </activity>
+
+        <activity android:name=".activities.ScanActivity"
+                  android:theme="@android:style/Theme.Translucent.NoTitleBar"
+                  android:configChanges="keyboardHidden|orientation|screenSize"
+                  android:label="@string/option_scan"
+                  android:exported="false">
+        </activity>
+
         <activity android:name=".activities.EditPGNLoad"
                   android:label="@string/load_game_title"
                   android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
