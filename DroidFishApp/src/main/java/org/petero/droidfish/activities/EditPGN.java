@@ -254,18 +254,16 @@ public abstract class EditPGN extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.item_delete_file:
+        int itemId = item.getItemId();
+        if (itemId == R.id.item_delete_file) {
             reShowDialog(DELETE_PGN_FILE_DIALOG);
-            break;
-        case R.id.regexp_search:
+        } else if (itemId == R.id.regexp_search) {
             useRegExp = !useRegExp;
             item.setChecked(useRegExp);
             if (binding != null) {
                 String s = binding.selectGameFilter.getText().toString();
                 setFilterString(s);
             }
-            break;
         }
         return false;
     }

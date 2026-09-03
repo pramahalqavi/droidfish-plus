@@ -308,7 +308,7 @@ public class ExternalEngine extends UCIEngineBase {
         return to.getAbsolutePath();
     }
 
-    private void chmod(String exePath) throws IOException {
+    protected void chmod(String exePath) throws IOException {
         if (!EngineUtil.chmod(exePath))
             throw new IOException("chmod failed");
     }

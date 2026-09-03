@@ -195,22 +195,21 @@ public class CuckooChess extends Activity implements GUIInterface {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.item_new_game:
-                ctrl.newGame(playerWhite, ttLogSize, false);
-                ctrl.startGame();
-                return true;
-            case R.id.item_undo:
-                ctrl.takeBackMove();
-                return true;
-            case R.id.item_redo:
-                ctrl.redoMove();
-                return true;
-            case R.id.item_settings: {
-                Intent i = new Intent(CuckooChess.this, Preferences.class);
-                startActivityForResult(i, 0);
-                return true;
-            }
+        int itemId = item.getItemId();
+        if (itemId == R.id.item_new_game) {
+            ctrl.newGame(playerWhite, ttLogSize, false);
+            ctrl.startGame();
+            return true;
+        } else if (itemId == R.id.item_undo) {
+            ctrl.takeBackMove();
+            return true;
+        } else if (itemId == R.id.item_redo) {
+            ctrl.redoMove();
+            return true;
+        } else if (itemId == R.id.item_settings) {
+            Intent i = new Intent(CuckooChess.this, Preferences.class);
+            startActivityForResult(i, 0);
+            return true;
         }
         return false;
     }

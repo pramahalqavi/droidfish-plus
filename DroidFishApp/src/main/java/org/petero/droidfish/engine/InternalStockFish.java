@@ -105,17 +105,9 @@ public class InternalStockFish extends ExternalEngine {
 
     @Override
     protected String copyFile(File from, File exeDir) throws IOException {
-        File to = new File(exeDir, "engine.exe");
         final String sfExe = EngineUtil.internalStockFishName();
-
-        // The checksum test is to avoid writing to /data unless necessary,
-        // on the assumption that it will reduce memory wear.
-        long oldCSum = readCheckSum(new File(internalSFPath()));
-        long newCSum = computeAssetsCheckSum(sfExe);
-        if (oldCSum != newCSum) {
-            copyAssetFile(sfExe, to);
-            writeCheckSum(new File(internalSFPath()), newCSum);
-        }
+        File to = new File(context.getApplicationInfo().nativeLibraryDir, sfExe);
+        
         copyNetFiles(exeDir);
         return to.getAbsolutePath();
     }
@@ -131,6 +123,12 @@ public class InternalStockFish extends ExternalEngine {
                     throw new IOException("Rename failed");
             }
         }
+    }
+
+    @Override
+    protected void chmod(String exePath) throws IOException {
+        // No-op for bundled engines, as Android extracts them into nativeLibraryDir
+        // with execute permissions automatically, and they are read-only.
     }
 
     /** Copy a file resource from the AssetManager to the file system,

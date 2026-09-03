@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    namespace 'org.petero.droidfish'
+    compileSdk 34
 
     defaultConfig {
         applicationId "org.petero.droidfish"
-        minSdkVersion 16
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdk 34
         versionCode 100
         versionName "1.90"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -77,20 +78,23 @@ task buildEco {
 }
 preBuild.dependsOn buildEco
 
-// Copy Stockfish executables to assets directory
-task copyToAssets(type: Copy, dependsOn: 'externalNativeBuildRelease') {
+// Copy Stockfish executables to jniLibs directory so they get extracted natively
+task copyToJniLibs(type: Copy, dependsOn: 'externalNativeBuildRelease') {
     from('build/intermediates/ndkBuild/release/obj/local') {
         include '*/stockfish'
         include '*/stockfish_nosimd'
     }
-    into 'src/main/assets'
+    into 'src/main/jniLibs'
+    rename { String fileName ->
+        "lib${fileName}.so"
+    }
 }
 tasks.withType(JavaCompile) {
-    t -> t.dependsOn copyToAssets
+    t -> t.dependsOn copyToJniLibs
 }
 android {
   applicationVariants.all { variant ->
-    tasks["merge${variant.name.capitalize()}Assets"]
-      .dependsOn(copyToAssets)
+    tasks["merge${variant.name.capitalize()}JniLibFolders"]
+      .dependsOn(copyToJniLibs)
   }
 }

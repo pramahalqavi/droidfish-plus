@@ -35,13 +35,7 @@ public class EngineUtil {
 
     /** Return file name of the internal stockfish executable. */
     public static String internalStockFishName() {
-        String abi = Build.CPU_ABI;
-        if (!"x86".equals(abi) &&
-                !"x86_64".equals(abi) &&
-                !"arm64-v8a".equals(abi)) {
-            abi = "armeabi-v7a"; // Unknown ABI, assume 32-bit arm
-        }
-        return abi + "/stockfish" + (isSimdSupported() ? "" : "_nosimd");
+        return "libstockfish" + (isSimdSupported() ? "" : "_nosimd") + ".so";
     }
 
     /** Return true if file "engine" is a network engine. */
