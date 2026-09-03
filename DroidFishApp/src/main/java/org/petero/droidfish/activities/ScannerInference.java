@@ -1,6 +1,7 @@
 package org.petero.droidfish.activities;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -9,11 +10,13 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.support.common.FileUtil;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,13 +48,23 @@ public class ScannerInference {
 
     public ScannerInference(Context context) {
         try {
-            MappedByteBuffer tfliteModel = FileUtil.loadMappedFile(context, "yolo_chess.tflite");
+            MappedByteBuffer tfliteModel = loadModelFile(context, "yolo_chess.tflite");
             Interpreter.Options options = new Interpreter.Options();
             options.setNumThreads(4);
             tflite = new Interpreter(tfliteModel, options);
-            Log.d(TAG, "TFLite model loaded successfully");
+            Log.d(TAG, "LiteRT/TFLite model loaded successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error loading model: " + e.getMessage(), e);
+        }
+    }
+
+    private static MappedByteBuffer loadModelFile(Context context, String modelPath) throws IOException {
+        AssetFileDescriptor fileDescriptor = context.getAssets().openFd(modelPath);
+        try (FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor())) {
+            FileChannel fileChannel = inputStream.getChannel();
+            long startOffset = fileDescriptor.getStartOffset();
+            long declaredLength = fileDescriptor.getDeclaredLength();
+            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
         }
     }
 

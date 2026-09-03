@@ -3759,7 +3759,8 @@ public class DroidFish extends Activity
             String contentTitle = getString(R.string.background_processing);
             String contentText = getString(R.string.lot_cpu_power);
             Intent notificationIntent = new Intent(this, CPUWarning.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+            int flags = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ? PendingIntent.FLAG_IMMUTABLE : 0;
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, flags);
 
             Notification notification = new NotificationCompat.Builder(context, channelId)
                     .setSmallIcon(icon)
