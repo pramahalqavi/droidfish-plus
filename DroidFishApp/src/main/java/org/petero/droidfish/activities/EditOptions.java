@@ -36,6 +36,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
 import org.petero.droidfish.DroidFishApp;
@@ -58,7 +59,7 @@ import java.util.TreeMap;
 /**
  * Edit UCI options.
  */
-public class EditOptions extends Activity {
+public class EditOptions extends AppCompatActivity {
     private UCIOptions uciOpts = null;
     private String engineName = "";
     private String workDir = "";

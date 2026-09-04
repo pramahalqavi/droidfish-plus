@@ -1,7 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="default_normal">#ff0099cc</color><!-- android.R.color.holo_blue_dark -->
-    <color name="default_pressed">#ff33b5e5</color><!-- android.R.color.holo_blue_light -->
-    <color name="default_disabled">#aaa</color><!-- android.R.color.darker_gray -->
+    <!-- Legacy compatibility -->
+    <color name="default_normal">#ff0099cc</color>
+    <color name="default_pressed">#ff33b5e5</color>
+    <color name="default_disabled">#aaa</color>
     <color name="White">#FFFFFF</color>
+
+    <!-- Material Design 3 Light Tokens -->
+    <color name="md_theme_primary">#00658F</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#C7E7FF</color>
+    <color name="md_theme_onPrimaryContainer">#001E2E</color>
+    <color name="md_theme_secondary">#4F606E</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#D2E5F5</color>
+    <color name="md_theme_onSecondaryContainer">#0B1D29</color>
+    <color name="md_theme_tertiary">#63597C</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#E9DDFF</color>
+    <color name="md_theme_onTertiaryContainer">#1F1635</color>
+    <color name="md_theme_error">#BA1A1A</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_errorContainer">#FFDAD6</color>
+    <color name="md_theme_onErrorContainer">#410002</color>
+    <color name="md_theme_background">#F7F9FC</color>
+    <color name="md_theme_onBackground">#191C1E</color>
+    <color name="md_theme_surface">#FFFFFF</color>
+    <color name="md_theme_onSurface">#191C1E</color>
+    <color name="md_theme_surfaceVariant">#DEE3EA</color>
+    <color name="md_theme_onSurfaceVariant">#41474D</color>
+    <color name="md_theme_outline">#72787E</color>
+    <color name="md_theme_outlineVariant">#C1C7CE</color>
+    <color name="md_theme_surfaceContainerLowest">#FFFFFF</color>
+    <color name="md_theme_surfaceContainerLow">#F1F4F8</color>
+    <color name="md_theme_surfaceContainer">#EBEFF3</color>
+    <color name="md_theme_surfaceContainerHigh">#E5E9EE</color>
+    <color name="md_theme_surfaceContainerHighest">#DFE3E8</color>
+
+    <!-- Chess Timer Pill Colors -->
+    <color name="clock_white_bg">#E8EEF5</color>
+    <color name="clock_white_fg">#1A202C</color>
+    <color name="clock_black_bg">#2D3748</color>
+    <color name="clock_black_fg">#F7FAFC</color>
+
+    <!-- Drawer Colors -->
+    <color name="drawer_surface">#FFFFFF</color>
+    <color name="drawer_item_selected">#E0EEFA</color>
 </resources>

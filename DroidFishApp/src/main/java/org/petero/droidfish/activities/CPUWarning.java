@@ -29,11 +29,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 public class CPUWarning extends Activity {
     public static class Fragment extends DialogFragment {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            return new AlertDialog.Builder(getActivity())
+            return new MaterialAlertDialogBuilder(getActivity())
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.cpu_warning)
                     .create();

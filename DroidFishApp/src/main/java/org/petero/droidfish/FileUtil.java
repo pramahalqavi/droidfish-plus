@@ -18,8 +18,12 @@
 
 package org.petero.droidfish;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.OpenableColumns;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,6 +37,9 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class FileUtil {
     /** Read a text file. Return string array with one string per line. */
@@ -44,38 +51,55 @@ public class FileUtil {
             String line;
             while ((line = inBuf.readLine()) != null)
                 ret.add(line);
-            return ret.toArray(new String[0]);
         }
+        return ret.toArray(new String[0]);
     }
 
-    /** Read all data from an input stream. Return null if IO error. */
-    public static String readFromStream(InputStream is) {
-        try (InputStreamReader isr = new InputStreamReader(is, "UTF-8");
-             BufferedReader br = new BufferedReader(isr)) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-                sb.append('\n');
+    /** Write a text file. */
+    public static void writeFile(String filename, String[] lines) throws IOException {
+        try (OutputStream outStream = new FileOutputStream(filename)) {
+            for (String line : lines) {
+                byte[] bytes = (line + "\n").getBytes("UTF-8");
+                outStream.write(bytes);
             }
-            return sb.toString();
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        } catch (IOException e) {
-            return null;
         }
     }
 
-    /** Read data from input stream and write to file. */
-    public static void writeFile(InputStream is, String outFile) throws IOException {
-        try (OutputStream os = new FileOutputStream(outFile)) {
-            byte[] buffer = new byte[16384];
-            while (true) {
-                int len = is.read(buffer);
-                if (len <= 0)
-                    break;
+    public static void writeFile(InputStream is, String filename) throws IOException {
+        copyStreamToFile(is, new File(filename));
+    }
+
+    /** Copy an input stream to a file. */
+    public static void copyStreamToFile(InputStream is, File f) throws IOException {
+        try (OutputStream os = new FileOutputStream(f)) {
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = is.read(buffer)) > 0)
                 os.write(buffer, 0, len);
+        }
+    }
+
+    /** Copy a file to another file. */
+    public static void copyFile(File src, File dst) throws IOException {
+        try (InputStream in = new FileInputStream(src)) {
+            copyStreamToFile(in, dst);
+        }
+    }
+
+    /** Read an entire stream into a string. */
+    public static String readFromStream(InputStream is) {
+        try {
+            BufferedReader r = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            StringBuilder total = new StringBuilder();
+            String line;
+            while ((line = r.readLine()) != null) {
+                total.append(line).append('\n');
             }
+            return total.toString();
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        } catch (IOException e) {
+            return "";
         }
     }
 
@@ -93,27 +117,122 @@ public class FileUtil {
     }
 
     public static String[] findFilesInDirectory(String dirName, final FileNameFilter filter) {
-        File extDir = Environment.getExternalStorageDirectory();
+        Set<String> resultSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        List<File> searchDirs = new ArrayList<>();
         String sep = File.separator;
-        File dir = new File(extDir.getAbsolutePath() + sep + dirName);
-        File[] files = dir.listFiles(pathname -> {
-            if (!pathname.isFile())
-                return false;
-            return (filter == null) || filter.accept(pathname.getAbsolutePath());
-        });
-        if (files == null)
-            files = new File[0];
-        final int numFiles = files.length;
-        String[] fileNames = new String[numFiles];
-        for (int i = 0; i < files.length; i++)
-            fileNames[i] = files[i].getName();
-        Arrays.sort(fileNames, String.CASE_INSENSITIVE_ORDER);
-        return fileNames;
+
+        File extDir = Environment.getExternalStorageDirectory();
+        if (extDir != null) {
+            searchDirs.add(new File(extDir.getAbsolutePath() + sep + dirName));
+        }
+        Context ctx = DroidFishApp.getContext();
+        if (ctx != null) {
+            File appExt = ctx.getExternalFilesDir(null);
+            if (appExt != null) {
+                searchDirs.add(new File(appExt.getAbsolutePath() + sep + dirName));
+            }
+            searchDirs.add(new File(ctx.getFilesDir(), dirName));
+        }
+
+        for (File dir : searchDirs) {
+            if (dir.exists() && dir.isDirectory()) {
+                File[] files = dir.listFiles(pathname -> {
+                    if (!pathname.isFile())
+                        return false;
+                    return (filter == null) || filter.accept(pathname.getAbsolutePath());
+                });
+                if (files != null) {
+                    for (File f : files) {
+                        resultSet.add(f.getName());
+                    }
+                }
+            }
+        }
+        return resultSet.toArray(new String[0]);
+    }
+
+    public static String getFullFilePath(String defaultDir, String fn) {
+        String sep = File.separator;
+        Context ctx = DroidFishApp.getContext();
+        if (ctx != null) {
+            File local = new File(ctx.getFilesDir(), defaultDir + sep + fn);
+            if (local.exists()) return local.getAbsolutePath();
+            File appExt = ctx.getExternalFilesDir(null);
+            if (appExt != null) {
+                File appExtFile = new File(appExt.getAbsolutePath() + sep + defaultDir + sep + fn);
+                if (appExtFile.exists()) return appExtFile.getAbsolutePath();
+            }
+        }
+        File extDir = Environment.getExternalStorageDirectory();
+        if (extDir != null) {
+            File extFile = new File(extDir.getAbsolutePath() + sep + defaultDir + sep + fn);
+            if (extFile.exists()) return extFile.getAbsolutePath();
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager() && ctx != null) {
+                File appExt = ctx.getExternalFilesDir(null);
+                if (appExt != null) {
+                    File dir = new File(appExt, defaultDir);
+                    dir.mkdirs();
+                    return new File(dir, fn).getAbsolutePath();
+                }
+                File local = new File(ctx.getFilesDir(), defaultDir);
+                local.mkdirs();
+                return new File(local, fn).getAbsolutePath();
+            }
+        }
+
+        if (extDir != null) {
+            return extDir.getAbsolutePath() + sep + defaultDir + sep + fn;
+        }
+        return fn;
+    }
+
+    public static String getFilePathFromUri(Context context, Uri uri) {
+        if (uri == null)
+            return null;
+        if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+        if (context == null)
+            context = DroidFishApp.getContext();
+        if (context != null && "content".equalsIgnoreCase(uri.getScheme())) {
+            try {
+                String displayName = "imported_" + System.currentTimeMillis() + ".pgn";
+                try (Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        if (nameIdx >= 0) {
+                            String name = cursor.getString(nameIdx);
+                            if (name != null && name.length() > 0)
+                                displayName = name;
+                        }
+                    }
+                } catch (Exception ignore) {}
+
+                File targetDir = new File(context.getFilesDir(), "pgn");
+                targetDir.mkdirs();
+                File dest = new File(targetDir, displayName);
+                try (InputStream in = context.getContentResolver().openInputStream(uri);
+                     OutputStream out = new FileOutputStream(dest)) {
+                    if (in != null) {
+                        byte[] buf = new byte[8192];
+                        int len;
+                        while ((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+                        return dest.getAbsolutePath();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return uri.getPath();
     }
 
     public static String getFilePathFromUri(Uri uri) {
-        if (uri == null)
-            return null;
-        return uri.getPath();
+        return getFilePathFromUri(DroidFishApp.getContext(), uri);
     }
 }

@@ -97,11 +97,22 @@ public final class Util {
         if (v == null)
             return;
         final int bg = ColorTheme.instance().getColor(ColorTheme.GENERAL_BACKGROUND);
+        final int fg = ColorTheme.instance().getColor(ColorTheme.FONT_FOREGROUND);
         Object tag = v.getTag();
+        final int vid = v.getId();
+        final boolean isMoveListArea = (vid == R.id.scrollView) ||
+                                       (vid == R.id.moveList) ||
+                                       (vid == R.id.scrollViewBot) ||
+                                       (vid == R.id.thinking);
         final boolean excludedItems = v instanceof Button ||
                                       ((v instanceof EditText) && !(v instanceof MoveListView)) ||
                                       v instanceof ImageButton ||
-                                      "title".equals(tag);
+                                      v instanceof com.google.android.material.card.MaterialCardView ||
+                                      "title".equals(tag) ||
+                                      "m3_card".equals(tag) ||
+                                      (vid == R.id.status) ||
+                                      (vid == R.id.eb_status) ||
+                                      isMoveListArea;
         if (!excludedItems) {
             int c = bg;
             if ("thinking".equals(tag)) {
@@ -111,6 +122,8 @@ public final class Util {
                 c = Color.HSVToColor(Color.alpha(c), hsv);
             }
             v.setBackgroundColor(c);
+        } else if (vid == R.id.scrollView || vid == R.id.moveList || vid == R.id.thinking) {
+            v.setBackgroundColor(Color.TRANSPARENT);
         }
         if (v instanceof ListView)
             ((ListView) v).setCacheColorHint(bg);
@@ -120,11 +133,11 @@ public final class Util {
                 View child = vg.getChildAt(i);
                 overrideViewAttribs(child);
             }
-        } else if (!excludedItems && (v instanceof TextView)) {
-            int fg = ColorTheme.instance().getColor(ColorTheme.FONT_FOREGROUND);
-            ((TextView) v).setTextColor(fg);
-        } else if (!excludedItems && (v instanceof MoveListView)) {
-            int fg = ColorTheme.instance().getColor(ColorTheme.FONT_FOREGROUND);
+        } else if (v instanceof TextView) {
+            if (vid != R.id.status && vid != R.id.eb_status) {
+                ((TextView) v).setTextColor(fg);
+            }
+        } else if (v instanceof MoveListView) {
             ((MoveListView) v).setTextColor(fg);
         }
     }

@@ -39,7 +39,9 @@ import org.petero.droidfish.view.ChessBoard.SquareDecoration;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
@@ -57,11 +59,13 @@ import androidx.core.view.MotionEventCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.util.Pair;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewConfiguration;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
@@ -74,7 +78,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 @SuppressLint("ClickableViewAccessibility")
-public class EditBoard extends Activity {
+public class EditBoard extends AppCompatActivity {
     private ChessBoardEdit cb;
     private TextView status;
 
@@ -100,7 +104,7 @@ public class EditBoard extends Activity {
         egtbHints = settings.getBoolean("tbHintsEdit", false);
         autoScrollTitle = settings.getBoolean("autoScrollTitle", true);
         boardFlipped = settings.getBoolean("boardFlipped", false);
-
+        DroidFishApp.applyTheme(this);
         initUI();
 
         Util.setFullScreenMode(this, settings);
@@ -232,14 +236,17 @@ public class EditBoard extends Activity {
     private void initDrawers() {
         drawerLayout = findViewById(R.id.drawer_layout);
         leftDrawer = findViewById(R.id.left_drawer);
+        leftDrawer.setChoiceMode(ListView.CHOICE_MODE_NONE);
 
         class DrawerItem {
             int id;
             private int itemId; // Item string resource id
+            private int iconId;
 
-            private DrawerItem(int id, int itemId) {
+            private DrawerItem(int id, int itemId, int iconId) {
                 this.id = id;
                 this.itemId = itemId;
+                this.iconId = iconId;
             }
 
             @Override
@@ -262,23 +269,36 @@ public class EditBoard extends Activity {
         final int GET_FEN           = 11;
 
         final ArrayList<DrawerItem> leftItems = new ArrayList<>();
-        leftItems.add(new DrawerItem(SIDE_TO_MOVE, R.string.side_to_move));
-        leftItems.add(new DrawerItem(FLIP_PIECES, R.string.flip_pieces));
-        leftItems.add(new DrawerItem(FLIP_BOARD, R.string.flip_board));
-        leftItems.add(new DrawerItem(CLEAR_BOARD, R.string.clear_board));
-        leftItems.add(new DrawerItem(UNDO_CLEAR_BOARD, R.string.undo_clear_board));
-        leftItems.add(new DrawerItem(INITIAL_POS, R.string.initial_position));
-        leftItems.add(new DrawerItem(CASTLING_FLAGS, R.string.castling_flags));
-        leftItems.add(new DrawerItem(EN_PASSANT_FILE, R.string.en_passant_file));
-        leftItems.add(new DrawerItem(MOVE_COUNTERS, R.string.move_counters));
-        leftItems.add(new DrawerItem(COPY_POSITION, R.string.copy_position));
-        leftItems.add(new DrawerItem(PASTE_POSITION, R.string.paste_position));
+        leftItems.add(new DrawerItem(SIDE_TO_MOVE, R.string.side_to_move, R.drawable.ic_swap_vert));
+        leftItems.add(new DrawerItem(FLIP_PIECES, R.string.flip_pieces, R.drawable.ic_swap_horiz));
+        leftItems.add(new DrawerItem(FLIP_BOARD, R.string.flip_board, R.drawable.ic_screen_rotation));
+        leftItems.add(new DrawerItem(CLEAR_BOARD, R.string.clear_board, R.drawable.ic_clear));
+        leftItems.add(new DrawerItem(UNDO_CLEAR_BOARD, R.string.undo_clear_board, R.drawable.ic_undo));
+        leftItems.add(new DrawerItem(INITIAL_POS, R.string.initial_position, R.drawable.ic_restart));
+        leftItems.add(new DrawerItem(CASTLING_FLAGS, R.string.castling_flags, R.drawable.ic_flag));
+        leftItems.add(new DrawerItem(EN_PASSANT_FILE, R.string.en_passant_file, R.drawable.ic_tune));
+        leftItems.add(new DrawerItem(MOVE_COUNTERS, R.string.move_counters, R.drawable.ic_timer));
+        leftItems.add(new DrawerItem(COPY_POSITION, R.string.copy_position, R.drawable.ic_copy));
+        leftItems.add(new DrawerItem(PASTE_POSITION, R.string.paste_position, R.drawable.ic_paste));
         if (DroidFish.hasFenProvider(getPackageManager()))
-            leftItems.add(new DrawerItem(GET_FEN, R.string.get_fen));
+            leftItems.add(new DrawerItem(GET_FEN, R.string.get_fen, R.drawable.ic_fen));
 
-        leftDrawer.setAdapter(new ArrayAdapter<>(this,
-                                                 R.layout.drawer_list_item,
-                                                 leftItems.toArray(new DrawerItem[0])));
+        final int iconPadding = Math.round(TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics()));
+
+        leftDrawer.setAdapter(new ArrayAdapter<DrawerItem>(this,
+                R.layout.drawer_list_item, leftItems.toArray(new DrawerItem[0])) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView view = (TextView) super.getView(position, convertView, parent);
+                DrawerItem di = getItem(position);
+                if (di != null && di.iconId != 0) {
+                    view.setCompoundDrawablesRelativeWithIntrinsicBounds(di.iconId, 0, 0, 0);
+                    view.setCompoundDrawablePadding(iconPadding);
+                }
+                return view;
+            }
+        });
         leftDrawer.setOnItemClickListener((parent, view, position, id) -> {
             drawerLayout.closeDrawer(Gravity.LEFT);
             leftDrawer.clearChoices();
@@ -571,7 +591,7 @@ public class EditBoard extends Activity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
         case SIDE_DIALOG: {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
             builder.setTitle(R.string.select_side_to_move_first);
             final int selectedItem = (cb.pos.whiteMove) ? 0 : 1;
             builder.setSingleChoiceItems(new String[]{getString(R.string.white), getString(R.string.black)}, selectedItem, (dialog, id1) -> {
@@ -596,7 +616,7 @@ public class EditBoard extends Activity {
                     cb.pos.h1Castle(), cb.pos.a1Castle(),
                     cb.pos.h8Castle(), cb.pos.a8Castle()
             };
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
             builder.setTitle(R.string.castling_flags);
             builder.setMultiChoiceItems(items, checkedItems, (dialog, which, isChecked) -> {
                 Position pos = new Position(cb.pos);
@@ -625,7 +645,7 @@ public class EditBoard extends Activity {
             final CharSequence[] items = {
                     "A", "B", "C", "D", "E", "F", "G", "H", getString(R.string.none)
             };
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
             builder.setTitle(R.string.select_en_passant_file);
             builder.setSingleChoiceItems(items, getEPFile(), (dialog, item) -> {
                 setEPFile(item);
@@ -635,7 +655,7 @@ public class EditBoard extends Activity {
         }
         case MOVCNT_DIALOG: {
             View content = View.inflate(this, R.layout.edit_move_counters, null);
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
 
             builder.setView(content);
             builder.setTitle(R.string.edit_move_counters);

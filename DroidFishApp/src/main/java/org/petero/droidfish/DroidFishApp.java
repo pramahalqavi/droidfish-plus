@@ -28,6 +28,8 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatDelegate;
+
 import java.util.Locale;
 
 public class DroidFishApp extends Application {
@@ -37,6 +39,40 @@ public class DroidFishApp extends Application {
     public DroidFishApp() {
         super();
         appContext = this;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        applyTheme(this);
+    }
+
+    public static void applyTheme(Context context) {
+        if (context == null) return;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String theme = settings.getString("uiTheme", "system");
+        if ("light".equals(theme)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else if ("dark".equals(theme)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            if (Build.VERSION.SDK_INT >= 29) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY);
+            }
+        }
+    }
+
+    public static boolean isDarkMode(Context context) {
+        if (context == null) context = appContext;
+        if (context == null) return false;
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String theme = settings.getString("uiTheme", "system");
+        if ("dark".equals(theme)) return true;
+        if ("light".equals(theme)) return false;
+        int nightModeFlags = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        return nightModeFlags == Configuration.UI_MODE_NIGHT_YES;
     }
 
     /** Get the application context. */

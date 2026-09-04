@@ -1,10 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ListView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/right_drawer"
     android:tag="drawer"
-    android:layout_width="280dp"
+    android:layout_width="300dp"
     android:layout_height="match_parent"
-    android:layout_gravity="right"
+    android:layout_gravity="end"
     android:choiceMode="singleChoice"
-    android:background="#F0282828"
-    android:dividerHeight="1dp" />
+    android:background="@color/drawer_surface"
+    android:divider="@android:color/transparent"
+    android:dividerHeight="4dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
+    android:clipToPadding="false" />

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -23,104 +24,151 @@
 
         <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginRight="6dp"
-            android:paddingTop="1dp">
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
 
             <TextView
                 android:id="@+id/status"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:background="@drawable/badge_pill_bg"
                 android:includeFontPadding="true"
                 android:fontFamily="monospace"
                 android:typeface="monospace"
-                android:textSize="12sp" />
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="12sp"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
-            <LinearLayout
-                android:id="@+id/buttons"
-                android:orientation="horizontal"
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.App.PillCard"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp">
+                android:layout_marginStart="6dp"
+                android:tag="m3_card">
 
-                <ImageButton
-                    android:id="@+id/custom3Button"
-                    android:contentDescription="@string/buttonDesc_custom3"
-                    android:layout_width="36dp"
-                    android:layout_height="32dp" />
+                <LinearLayout
+                    android:id="@+id/buttons"
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:gravity="center_vertical">
 
-                <ImageButton
-                    android:id="@+id/custom2Button"
-                    android:contentDescription="@string/buttonDesc_custom2"
-                    android:layout_width="36dp"
-                    android:layout_height="32dp" />
+                    <ImageButton
+                        android:id="@+id/custom3Button"
+                        android:contentDescription="@string/buttonDesc_custom3"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp" />
 
-                <ImageButton
-                    android:id="@+id/custom1Button"
-                    android:contentDescription="@string/buttonDesc_custom1"
-                    android:layout_width="36dp"
-                    android:layout_height="32dp" />
+                    <ImageButton
+                        android:id="@+id/custom2Button"
+                        android:contentDescription="@string/buttonDesc_custom2"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp" />
 
-                <ImageButton
-                    android:id="@+id/modeButton"
-                    android:contentDescription="@string/buttonDesc_mode"
-                    android:layout_width="36dp"
-                    android:layout_height="32dp" />
+                    <ImageButton
+                        android:id="@+id/custom1Button"
+                        android:contentDescription="@string/buttonDesc_custom1"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp" />
 
-                <ImageButton
-                    android:id="@+id/undoButton"
-                    android:contentDescription="@string/buttonDesc_back"
-                    android:layout_width="36dp"
-                    android:layout_height="32dp" />
+                    <ImageButton
+                        android:id="@+id/modeButton"
+                        android:contentDescription="@string/buttonDesc_mode"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp" />
 
-                <ImageButton
-                    android:id="@+id/redoButton"
-                    android:contentDescription="@string/buttonDesc_forward"
-                    android:layout_width="36dp"
-                    android:layout_height="32dp" />
-            </LinearLayout>
+                    <ImageButton
+                        android:id="@+id/undoButton"
+                        android:contentDescription="@string/buttonDesc_back"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp" />
+
+                    <ImageButton
+                        android:id="@+id/redoButton"
+                        android:contentDescription="@string/buttonDesc_forward"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <view
-            class="org.petero.droidfish.view.MyRelativeLayout"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-
-            <ScrollView
-                android:id="@+id/scrollView"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
-
-                <view
-                    class="org.petero.droidfish.view.MoveListView"
-                    android:id="@+id/moveList"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:includeFontPadding="true"
-                    android:padding="0dp" />
-            </ScrollView>
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.App.Card"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp"
+            android:tag="m3_card">
 
             <view
-                class="org.petero.droidfish.view.MyScrollView"
-                android:id="@+id/scrollViewBot"
-                android:layout_alignParentBottom="true"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
+                class="org.petero.droidfish.view.MyRelativeLayout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-                <TextView
-                    android:id="@+id/thinking"
-                    android:tag="thinking"
-                    android:layout_width="fill_parent"
+                <ScrollView
+                    android:id="@+id/scrollView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <view
+                        class="org.petero.droidfish.view.MoveListView"
+                        android:id="@+id/moveList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:includeFontPadding="true"
+                        android:padding="0dp" />
+                </ScrollView>
+
+                <view
+                    class="org.petero.droidfish.view.MyScrollView"
+                    android:id="@+id/scrollViewBot"
+                    android:layout_alignParentBottom="true"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:includeFontPadding="true"
-                    android:fontFamily="monospace"
-                    android:typeface="monospace"
-                    android:textSize="12sp" />
+                    android:background="@color/md_theme_surfaceContainerHigh"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <TextView
+                        android:id="@+id/thinking"
+                        android:tag="thinking"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:includeFontPadding="true"
+                        android:fontFamily="monospace"
+                        android:typeface="monospace"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="12sp" />
+                </view>
             </view>
-        </view>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
     <include layout="@layout/left_drawer" />

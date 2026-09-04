@@ -816,4 +816,17 @@ If you are running on battery power, it is recommended that you change settings 
         <item>German Speech</item>
         <item>Spanish Speech</item>
     </string-array>
+    <string name="prefs_uiTheme_title">UI Theme</string>
+    <string name="prefs_uiTheme_summary">Select Light, Dark, or System default theme</string>
+    <string-array name="ui_theme_texts">
+        <item>System default</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+    <string-array name="ui_theme_values">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+    <string name="browse_files">Browse Files…</string>
 </resources>

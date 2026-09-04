@@ -113,6 +113,8 @@ public class ColorTheme {
 
     final void readColors(SharedPreferences settings) {
         for (int i = 0; i < numColors; i++) {
+            if (i == CURRENT_MOVE || i == PGN_COMMENT || i == FONT_FOREGROUND || i == GENERAL_BACKGROUND)
+                continue;
             String prefName = prefPrefix + prefNames[i];
             String defaultColor = themeColors[defaultTheme][i];
             String colorString = settings.getString(prefName, defaultColor);
@@ -126,13 +128,28 @@ public class ColorTheme {
 
     final void setTheme(SharedPreferences settings, int themeType) {
         Editor editor = settings.edit();
-        for (int i = 0; i < numColors; i++)
+        for (int i = 0; i < numColors; i++) {
+            if (i == CURRENT_MOVE || i == PGN_COMMENT || i == FONT_FOREGROUND || i == GENERAL_BACKGROUND)
+                continue;
             editor.putString(prefPrefix + prefNames[i], themeColors[themeType][i]);
+        }
         editor.apply();
         readColors(settings);
     }
 
     public final int getColor(int colorType) {
-        return colorTable[colorType];
+        boolean dark = DroidFishApp.isDarkMode(DroidFishApp.getContext());
+        switch (colorType) {
+        case CURRENT_MOVE:
+            return dark ? 0xFF3D5A80 : 0xFFD3E3FD;
+        case PGN_COMMENT:
+            return dark ? 0xFFA5D6A7 : 0xFF2E7D32;
+        case FONT_FOREGROUND:
+            return dark ? 0xFFE6E1E5 : 0xFF1D1B20;
+        case GENERAL_BACKGROUND:
+            return dark ? 0xFF1D1B20 : 0xFFF7F2FA;
+        default:
+            return colorTable[colorType];
+        }
     }
 }

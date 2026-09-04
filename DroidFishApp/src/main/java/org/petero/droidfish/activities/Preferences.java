@@ -48,10 +48,33 @@ public class Preferences extends PreferenceActivity {
     private static int initialItem = -1;
 
     public static class Fragment extends PreferenceFragment {
+        private final SharedPreferences.OnSharedPreferenceChangeListener prefListener = (prefs, key) -> {
+            if ("uiTheme".equals(key)) {
+                android.app.Activity a = getActivity();
+                if (a != null) {
+                    DroidFishApp.applyTheme(a);
+                    initialItem = currentItem;
+                    a.recreate();
+                }
+            }
+        };
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(prefListener);
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(prefListener);
         }
 
         @Override
@@ -83,8 +106,25 @@ public class Preferences extends PreferenceActivity {
         }
     }
 
+    private void applyLocalTheme() {
+        DroidFishApp.applyTheme(this);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String theme = settings.getString("uiTheme", "system");
+        boolean isDark;
+        if ("dark".equals(theme)) {
+            isDark = true;
+        } else if ("light".equals(theme)) {
+            isDark = false;
+        } else {
+            int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            isDark = (nightMode == Configuration.UI_MODE_NIGHT_YES);
+        }
+        setTheme(isDark ? R.style.PreferencesTheme_Dark : R.style.PreferencesTheme_Light);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        applyLocalTheme();
         super.onCreate(savedInstanceState);
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         initialItem = settings.getInt("prefsViewInitialItem", -1);

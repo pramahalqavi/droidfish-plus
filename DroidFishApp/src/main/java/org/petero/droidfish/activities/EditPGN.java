@@ -18,7 +18,8 @@
 
 package org.petero.droidfish.activities;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -369,7 +370,7 @@ public abstract class EditPGN extends AppCompatActivity {
             selectedGi = null;
             if (gi == null)
                 return null;
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
             builder.setTitle(R.string.delete_game);
             String msg = gi.toString();
             builder.setMessage(msg);
@@ -385,7 +386,7 @@ public abstract class EditPGN extends AppCompatActivity {
             selectedGi = null;
             if (gi == null)
                 return null;
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
             builder.setTitle(R.string.save_game_question);
             final CharSequence[] items = {
                 getString(R.string.before_selected),
@@ -415,7 +416,7 @@ public abstract class EditPGN extends AppCompatActivity {
             return builder.create();
         }
         case DELETE_PGN_FILE_DIALOG: {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
             builder.setTitle(R.string.delete_file_question);
             String name = new File(pgnFile.getName()).getName();
             String msg = String.format(Locale.US, getString(R.string.delete_named_file), name);

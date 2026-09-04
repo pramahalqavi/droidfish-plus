@@ -1,7 +1,5 @@
 package org.petero.droidfish.activities;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,14 +11,16 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.petero.droidfish.R;
 
 import java.io.File;
 import java.io.InputStream;
 
-public class ScanActivity extends Activity {
+public class ScanActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_PICK = 1001;
     private static final int REQUEST_IMAGE_CAPTURE = 1002;
@@ -39,7 +39,7 @@ public class ScanActivity extends Activity {
 
     private void showChoiceDialog() {
         String[] options = {"Pick Image", "Open Camera"};
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle("Scan Chess Position")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
