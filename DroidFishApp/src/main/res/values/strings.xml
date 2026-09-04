@@ -474,6 +474,13 @@ If you are running on battery power, it is recommended that you change settings 
     <string name="buttonDesc_mode">Mode button</string>
     <string name="buttonDesc_back">Backward button</string>
     <string name="buttonDesc_forward">Forward button</string>
+    <string name="nav_action_flip">Flip</string>
+    <string name="nav_action_action">Engine</string>
+    <string name="nav_action_mode">Mode</string>
+    <string name="nav_action_undo">Back</string>
+    <string name="nav_action_redo">Forward</string>
+    <string name="prefs_flipOppositePieces_title">Flip opposite pieces</string>
+    <string name="prefs_flipOppositePieces_summary">Make the opposite pieces upside down.</string>
     <string-array name="viewPieceType_texts">
         <item>English letters</item>
         <item>Local language letters</item>

@@ -438,6 +438,7 @@ public class PGNFile {
     public void autoSave(String pgn) {
         final int maxAutoSaveGames = 20;
         try {
+            mkDirs();
             if (!fileName.exists()) {
                 appendPGN(pgn, true);
             } else {
@@ -467,8 +468,10 @@ public class PGNFile {
                 fileReader.seek(gi.endPos);
                 copyData(fileReader, fileWriter, fileReader.length() - gi.endPos);
             }
-            if (!tmpFile.renameTo(fileName))
-                throw new IOException();
+            if (!tmpFile.renameTo(fileName)) {
+                if (!fileName.delete() || !tmpFile.renameTo(fileName))
+                    throw new IOException();
+            }
 
             // Update gamesInFile
             if (gamesInFile != null) {
@@ -500,8 +503,10 @@ public class PGNFile {
                 fileReader.seek(gi.endPos);
                 copyData(fileReader, fileWriter, fileReader.length() - gi.endPos);
             }
-            if (!tmpFile.renameTo(fileName))
-                throw new IOException();
+            if (!tmpFile.renameTo(fileName)) {
+                if (!fileName.delete() || !tmpFile.renameTo(fileName))
+                    throw new IOException();
+            }
             if (!silent)
                 DroidFishApp.toast(R.string.game_saved, Toast.LENGTH_SHORT);
         } catch (IOException e) {

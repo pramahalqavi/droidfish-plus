@@ -60,6 +60,7 @@ public abstract class ChessBoard extends View {
     public boolean toggleSelection;
     public boolean highlightLastMove;         // If true, last move is marked with a rectangle
     public boolean blindMode;                 // If true, no chess pieces and arrows are drawn
+    public boolean flipOppositePieces;        // If true, opposite side pieces are drawn upside down
 
     private List<Move> moveHints;
 
@@ -97,6 +98,7 @@ public abstract class ChessBoard extends View {
         toggleSelection = false;
         highlightLastMove = true;
         blindMode = false;
+        flipOppositePieces = false;
 
         darkPaint = new Paint();
         brightPaint = new Paint();
@@ -370,6 +372,14 @@ public abstract class ChessBoard extends View {
         }
     }
 
+    /** Set/clear the flipOppositePieces status. */
+    public final void setFlipOppositePieces(boolean flipOppositePieces) {
+        if (this.flipOppositePieces != flipOppositePieces) {
+            this.flipOppositePieces = flipOppositePieces;
+            invalidate();
+        }
+    }
+
     /**
      * Set/clear the selected square.
      * @param square The square to select, or -1 to clear selection.
@@ -539,7 +549,7 @@ public abstract class ChessBoard extends View {
 
         Bitmap bm = PieceSet.instance().getPieceBitmap(p, sqSize);
         if (bm != null) {
-            boolean rotate = flipped & false; // Disabled for now
+            boolean rotate = flipOppositePieces && (p != Piece.EMPTY) && (flipped == Piece.isWhite(p));
             if (rotate) {
                 canvas.save();
                 canvas.rotate(180, xCrd + sqSize * 0.5f, yCrd + sqSize * 0.5f);

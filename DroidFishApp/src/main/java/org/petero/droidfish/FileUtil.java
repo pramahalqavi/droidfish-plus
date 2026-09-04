@@ -154,6 +154,27 @@ public class FileUtil {
     public static String getFullFilePath(String defaultDir, String fn) {
         String sep = File.separator;
         Context ctx = DroidFishApp.getContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            if (ctx != null) {
+                File appExt = ctx.getExternalFilesDir(null);
+                if (appExt != null) {
+                    File appExtFile = new File(appExt.getAbsolutePath() + sep + defaultDir + sep + fn);
+                    if (appExtFile.exists()) return appExtFile.getAbsolutePath();
+                }
+                File local = new File(ctx.getFilesDir(), defaultDir + sep + fn);
+                if (local.exists()) return local.getAbsolutePath();
+
+                if (appExt != null) {
+                    File dir = new File(appExt, defaultDir);
+                    dir.mkdirs();
+                    return new File(dir, fn).getAbsolutePath();
+                }
+                File dir = new File(ctx.getFilesDir(), defaultDir);
+                dir.mkdirs();
+                return new File(dir, fn).getAbsolutePath();
+            }
+        }
+
         if (ctx != null) {
             File local = new File(ctx.getFilesDir(), defaultDir + sep + fn);
             if (local.exists()) return local.getAbsolutePath();
@@ -167,20 +188,6 @@ public class FileUtil {
         if (extDir != null) {
             File extFile = new File(extDir.getAbsolutePath() + sep + defaultDir + sep + fn);
             if (extFile.exists()) return extFile.getAbsolutePath();
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager() && ctx != null) {
-                File appExt = ctx.getExternalFilesDir(null);
-                if (appExt != null) {
-                    File dir = new File(appExt, defaultDir);
-                    dir.mkdirs();
-                    return new File(dir, fn).getAbsolutePath();
-                }
-                File local = new File(ctx.getFilesDir(), defaultDir);
-                local.mkdirs();
-                return new File(local, fn).getAbsolutePath();
-            }
         }
 
         if (extDir != null) {

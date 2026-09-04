@@ -24,92 +24,34 @@
                 android:layout_height="wrap_content"
                 layout="@layout/title" />
 
-            <LinearLayout
-                android:orientation="horizontal"
+            <TextView
+                android:id="@+id/status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/badge_pill_bg"
                 android:gravity="center_vertical"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingTop="3dp"
-                android:paddingBottom="3dp">
+                android:includeFontPadding="true"
+                android:fontFamily="monospace"
+                android:typeface="monospace"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="12sp"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
-                <TextView
-                    android:id="@+id/status"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/badge_pill_bg"
-                    android:includeFontPadding="true"
-                    android:fontFamily="monospace"
-                    android:typeface="monospace"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="12sp"
-                    android:maxLines="2"
-                    android:ellipsize="end" />
-
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.App.PillCard"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:tag="m3_card">
-
-                    <LinearLayout
-                        android:id="@+id/buttons"
-                        android:orientation="horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:paddingTop="2dp"
-                        android:paddingBottom="2dp"
-                        android:gravity="center_vertical">
-
-                        <ImageButton
-                            android:id="@+id/custom3Button"
-                            android:contentDescription="@string/buttonDesc_custom3"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_width="36dp"
-                            android:layout_height="32dp" />
-
-                        <ImageButton
-                            android:id="@+id/custom2Button"
-                            android:contentDescription="@string/buttonDesc_custom2"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_width="36dp"
-                            android:layout_height="32dp" />
-
-                        <ImageButton
-                            android:id="@+id/custom1Button"
-                            android:contentDescription="@string/buttonDesc_custom1"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_width="36dp"
-                            android:layout_height="32dp" />
-
-                        <ImageButton
-                            android:id="@+id/modeButton"
-                            android:contentDescription="@string/buttonDesc_mode"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_width="36dp"
-                            android:layout_height="32dp" />
-
-                        <ImageButton
-                            android:id="@+id/undoButton"
-                            android:contentDescription="@string/buttonDesc_back"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_width="36dp"
-                            android:layout_height="32dp" />
-
-                        <ImageButton
-                            android:id="@+id/redoButton"
-                            android:contentDescription="@string/buttonDesc_forward"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_width="36dp"
-                            android:layout_height="32dp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
+            <view
+                class="org.petero.droidfish.view.EvaluationBarView"
+                android:id="@+id/evaluationBar"
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginBottom="2dp"
+                android:visibility="gone" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.App.Card"
@@ -171,6 +113,238 @@
                     </view>
                 </view>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Material 3 Navigation Bar (Anchored at very bottom) -->
+            <LinearLayout
+                android:id="@+id/buttons"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:background="@drawable/navigation_bar_bg"
+                android:gravity="center_vertical"
+                android:baselineAligned="false"
+                android:tag="m3_ignore">
+
+                <!-- 1. Redo -->
+                <LinearLayout
+                    android:id="@+id/redoItem"
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <FrameLayout
+                        android:id="@+id/redoPill"
+                        android:layout_width="64dp"
+                        android:layout_height="32dp"
+                        android:duplicateParentState="true"
+                        android:background="@drawable/nav_indicator_pill">
+
+                        <ImageButton
+                            android:id="@+id/redoButton"
+                            android:contentDescription="@string/buttonDesc_forward"
+                            android:background="@null"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/redoLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:text="@string/nav_action_redo" />
+                </LinearLayout>
+
+                <!-- 2. Undo -->
+                <LinearLayout
+                    android:id="@+id/undoItem"
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <FrameLayout
+                        android:id="@+id/undoPill"
+                        android:layout_width="64dp"
+                        android:layout_height="32dp"
+                        android:duplicateParentState="true"
+                        android:background="@drawable/nav_indicator_pill">
+
+                        <ImageButton
+                            android:id="@+id/undoButton"
+                            android:contentDescription="@string/buttonDesc_back"
+                            android:background="@null"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/undoLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:text="@string/nav_action_undo" />
+                </LinearLayout>
+
+                <!-- 3. Mode -->
+                <LinearLayout
+                    android:id="@+id/modeItem"
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <FrameLayout
+                        android:id="@+id/modePill"
+                        android:layout_width="64dp"
+                        android:layout_height="32dp"
+                        android:duplicateParentState="true"
+                        android:background="@drawable/nav_indicator_pill">
+
+                        <ImageButton
+                            android:id="@+id/modeButton"
+                            android:contentDescription="@string/buttonDesc_mode"
+                            android:background="@null"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/modeLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:text="@string/nav_action_mode" />
+                </LinearLayout>
+
+                <!-- 4. Action / Custom 1 -->
+                <LinearLayout
+                    android:id="@+id/custom1Item"
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <FrameLayout
+                        android:id="@+id/custom1Pill"
+                        android:layout_width="64dp"
+                        android:layout_height="32dp"
+                        android:duplicateParentState="true"
+                        android:background="@drawable/nav_indicator_pill">
+
+                        <ImageButton
+                            android:id="@+id/custom1Button"
+                            android:contentDescription="@string/buttonDesc_custom1"
+                            android:background="@null"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/custom1Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:text="@string/nav_action_action" />
+                </LinearLayout>
+
+                <!-- 5. Flip / Custom 2 -->
+                <LinearLayout
+                    android:id="@+id/custom2Item"
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <FrameLayout
+                        android:id="@+id/custom2Pill"
+                        android:layout_width="64dp"
+                        android:layout_height="32dp"
+                        android:duplicateParentState="true"
+                        android:background="@drawable/nav_indicator_pill">
+
+                        <ImageButton
+                            android:id="@+id/custom2Button"
+                            android:contentDescription="@string/buttonDesc_custom2"
+                            android:background="@null"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/custom2Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:text="@string/nav_action_flip" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
         <view

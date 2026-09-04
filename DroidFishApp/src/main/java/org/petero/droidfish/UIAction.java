@@ -31,4 +31,14 @@ public interface UIAction extends Runnable {
 
     /** Return true if the action is currently enabled. */
     boolean enabled();
+
+    /** Return true if this action is a toggle action. */
+    default boolean isToggle() {
+        return false;
+    }
+
+    /** Return true if this toggle action is currently checked/active. */
+    default boolean isChecked() {
+        return false;
+    }
 }

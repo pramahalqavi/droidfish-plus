@@ -59,6 +59,10 @@ public interface GUIInterface {
         public ArrayList<Move> bookMoves;
         public String eco;
         public int distToEcoTree;
+        public boolean hasScore;
+        public int whiteScore;
+        public boolean isMate;
+        public int mateMoves;
     }
 
     /** Update the computer thinking information. */

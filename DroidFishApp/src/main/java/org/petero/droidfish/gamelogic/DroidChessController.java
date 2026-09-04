@@ -740,10 +740,24 @@ public class DroidChessController {
 
         private void setSearchInfo(final int id) {
             StringBuilder buf = new StringBuilder();
+            boolean hasScore = false;
+            int whiteScore = 0;
+            boolean isMate = false;
+            int mateMoves = 0;
+
             for (int i = 0; i < pvInfoV.size(); i++) {
                 PvInfo pvi = pvInfoV.get(i);
                 if (pvi.depth <= 0)
                     continue;
+                if (!hasScore) {
+                    hasScore = true;
+                    isMate = pvi.isMate;
+                    if (pvi.isMate) {
+                        mateMoves = whiteMove ? pvi.score : -pvi.score;
+                    } else {
+                        whiteScore = whiteMove ? pvi.score : -pvi.score;
+                    }
+                }
                 if (i > 0)
                     buf.append('\n');
                 buf.append(String.format(Locale.US, "[%d] ", pvi.depth));
@@ -808,6 +822,10 @@ public class DroidChessController {
             ti.distToEcoTree = distToEcoTree;
             ti.pvMoves = pvMoves;
             ti.bookMoves = bookMoves;
+            ti.hasScore = hasScore;
+            ti.whiteScore = whiteScore;
+            ti.isMate = isMate;
+            ti.mateMoves = mateMoves;
             latestThinkingInfo = ti;
             gui.runOnUIThread(() -> setThinkingInfo(ti));
         }

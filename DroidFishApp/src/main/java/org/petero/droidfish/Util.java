@@ -196,6 +196,8 @@ public final class Util {
     public static void overrideViewAttribs(final View v) {
         if (v == null)
             return;
+        if (v.getId() == R.id.buttons)
+            return;
         final int bg = ColorTheme.instance().getColor(ColorTheme.GENERAL_BACKGROUND);
         final int fg = ColorTheme.instance().getColor(ColorTheme.FONT_FOREGROUND);
         Object tag = v.getTag();

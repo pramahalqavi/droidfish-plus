@@ -19,6 +19,7 @@
 package org.petero.droidfish;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.view.View;
 import android.widget.ImageButton;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
  * Handle all actions connected to a button.
  */
 public class ButtonActions {
+    private View itemView;
     private ImageButton button;
     private String name;
     private int longClickDialog;
@@ -41,6 +43,7 @@ public class ButtonActions {
 
     /** Constructor. */
     public ButtonActions(String buttonName, int longClickDialog, int menuTitle) {
+        itemView = null;
         button = null;
         name = buttonName;
         this.longClickDialog = longClickDialog;
@@ -56,18 +59,39 @@ public class ButtonActions {
         return false;
     }
 
-    /** Connect GUI button. */
-    public void setImageButton(ImageButton button, final Activity activity) {
+    /** Connect GUI button and optional parent navigation item view. */
+    public void setItemView(View itemView, ImageButton button, final Activity activity, final Runnable onActionClicked) {
+        this.itemView = itemView;
         this.button = button;
-        button.setOnClickListener(v -> {
+        View.OnClickListener clickListener = v -> {
+            if (onActionClicked != null)
+                onActionClicked.run();
             if (mainAction != null) {
                 if (mainAction.enabled())
                     mainAction.run();
             } else {
                 showMenu(activity);
             }
-        });
-        button.setOnLongClickListener(v -> showMenu(activity));
+        };
+        View.OnLongClickListener longClickListener = v -> showMenu(activity);
+
+        if (itemView != null) {
+            itemView.setOnClickListener(clickListener);
+            itemView.setOnLongClickListener(longClickListener);
+        }
+        if (button != null) {
+            button.setOnClickListener(clickListener);
+            button.setOnLongClickListener(longClickListener);
+        }
+    }
+
+    public void setItemView(View itemView, ImageButton button, final Activity activity) {
+        setItemView(itemView, button, activity, null);
+    }
+
+    /** Connect GUI button. */
+    public void setImageButton(ImageButton button, final Activity activity) {
+        setItemView(null, button, activity);
     }
 
     private boolean showMenu(Activity activity) {
@@ -115,7 +139,9 @@ public class ButtonActions {
                 visible = true;
             menuActions.add(a);
         }
-        if (button != null)
+        if (itemView != null)
+            itemView.setVisibility(visible ? View.VISIBLE : View.GONE);
+        else if (button != null)
             button.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
@@ -127,5 +153,24 @@ public class ButtonActions {
         if (ret == -1)
             ret = R.raw.custom;
         return ret;
+    }
+
+    /** Get navigation bar label text for this action. */
+    public String getLabel(Context context, int defaultResId) {
+        if (mainAction != null) {
+            String id = mainAction.getId();
+            if ("flipboard".equals(id))
+                return context.getString(R.string.nav_action_flip);
+            if ("toggleAnalysis".equals(id))
+                return context.getString(R.string.nav_action_action);
+            int nameRes = mainAction.getName();
+            if (nameRes != 0) {
+                String full = context.getString(nameRes);
+                if (full.startsWith("Toggle "))
+                    full = full.substring(7);
+                return full;
+            }
+        }
+        return context.getString(defaultResId);
     }
 }
