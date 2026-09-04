@@ -1243,6 +1243,10 @@ public class DroidChessController {
         gui.setSelection(sq);
     }
 
+    public final Game getGame() {
+        return game;
+    }
+
     private void setAnimMove(Position sourcePos, Move move, boolean forward) {
         gui.setAnimMove(sourcePos, move, forward);
     }

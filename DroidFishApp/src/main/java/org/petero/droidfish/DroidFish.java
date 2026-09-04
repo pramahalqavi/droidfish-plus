@@ -59,7 +59,10 @@ import org.petero.droidfish.gamelogic.Game;
 import org.petero.droidfish.gamelogic.Move;
 import org.petero.droidfish.gamelogic.Position;
 import org.petero.droidfish.gamelogic.TextIO;
+import org.petero.droidfish.gamelogic.GameTree;
 import org.petero.droidfish.gamelogic.GameTree.Node;
+import org.petero.droidfish.gamelogic.MoveClassification;
+import org.petero.droidfish.gamelogic.MoveClassifier;
 import org.petero.droidfish.gamelogic.TimeControlData;
 import org.petero.droidfish.tb.Probe;
 import org.petero.droidfish.tb.ProbeResult;
@@ -175,6 +178,7 @@ public class DroidFish extends AppCompatActivity
     private boolean mShowBookHints;
     private int mEcoHints;
     private int maxNumArrows;
+    private boolean mShowMoveClassifications = true;
     GameMode gameMode;
     private boolean mPonderMode;
     private int timeControl;
@@ -482,6 +486,19 @@ public class DroidFish extends AppCompatActivity
                     editor.apply();
                     maxNumArrows = getIntSetting("thinkingArrows", 4);
                     updateThinkingInfo();
+                }
+            });
+            addAction(new UIAction() {
+                public String getId() { return "toggleMoveClassifications"; }
+                public int getName() { return R.string.toggle_move_classifications; }
+                public int getIcon() { return R.raw.custom; }
+                public boolean enabled() { return true; }
+                public boolean isToggle() { return true; }
+                public boolean isChecked() { return mShowMoveClassifications; }
+                public void run() {
+                    mShowMoveClassifications = !mShowMoveClassifications;
+                    setBooleanPref("showMoveClassifications", mShowMoveClassifications);
+                    updateMoveClassificationState();
                 }
             });
             addAction(new UIAction() {
@@ -1258,6 +1275,8 @@ public class DroidFish extends AppCompatActivity
         cb.highlightLastMove = settings.getBoolean("highlightLastMove", true);
         cb.setBlindMode(settings.getBoolean("blindMode", false));
         cb.setFlipOppositePieces(settings.getBoolean("flipOppositePieces", false));
+        mShowMoveClassifications = settings.getBoolean("showMoveClassifications", true);
+        cb.setShowMoveClassifications(mShowMoveClassifications);
 
         mShowThinking = settings.getBoolean("showThinking", false);
         mShowStats = settings.getBoolean("showStats", true);
@@ -1430,9 +1449,9 @@ public class DroidFish extends AppCompatActivity
         setButtonData(redoButton, bWidth, bHeight, R.raw.right);
 
         if (custom1Label != null)
-            custom1Label.setText(custom1ButtonActions.getLabel(this, R.string.nav_action_action));
+            custom1Label.setText(custom1ButtonActions.getLabel(this, R.string.nav_action_flip));
         if (custom2Label != null)
-            custom2Label.setText(custom2ButtonActions.getLabel(this, R.string.nav_action_flip));
+            custom2Label.setText(custom2ButtonActions.getLabel(this, R.string.nav_action_action));
 
         updateNavItemsState();
     }
@@ -1941,6 +1960,7 @@ public class DroidFish extends AppCompatActivity
                 evaluationBar.setFlipped(cb.flipped);
             }
         }
+        updateMoveClassificationState();
     }
 
     private String getParseErrString(ChessParseError e) {
@@ -2132,6 +2152,23 @@ public class DroidFish extends AppCompatActivity
         setBoardFlip();
         updateThinkingInfo();
         setEgtbHints(cb.getSelectedSquare());
+        if (ctrl != null && ctrl.getGame() != null && ctrl.getGame().tree != null) {
+            GameTree.Node currNode = ctrl.getGame().tree.currentNode;
+            if (currNode != null && currNode.evalScore != Integer.MIN_VALUE) {
+                hasEval = true;
+                evalWhiteScore = currNode.evalScore;
+                evalIsMate = currNode.evalIsMate;
+                evalMateMoves = currNode.evalMateMoves;
+            } else {
+                hasEval = false;
+            }
+        } else {
+            hasEval = false;
+        }
+        if (evaluationBar != null) {
+            evaluationBar.setEvaluation(evalWhiteScore, evalIsMate, evalMateMoves, hasEval, cb != null && cb.flipped);
+        }
+        updateMoveClassificationState();
     }
 
     private String thinkingStr1 = "";
@@ -2157,6 +2194,20 @@ public class DroidFish extends AppCompatActivity
         evalWhiteScore = ti.whiteScore;
         evalIsMate = ti.isMate;
         evalMateMoves = ti.mateMoves;
+        if (hasEval && ctrl != null && ctrl.getGame() != null && ctrl.getGame().tree != null) {
+            GameTree.Node currNode = ctrl.getGame().tree.currentNode;
+            if (currNode != null) {
+                currNode.evalScore = ti.whiteScore;
+                currNode.evalIsMate = ti.isMate;
+                currNode.evalMateMoves = ti.mateMoves;
+                if (ti.pvMoves != null && !ti.pvMoves.isEmpty()) {
+                    ArrayList<Move> pv0 = ti.pvMoves.get(0);
+                    if (pv0 != null && !pv0.isEmpty() && pv0.get(0) != null) {
+                        currNode.bestMove = pv0.get(0);
+                    }
+                }
+            }
+        }
         updateThinkingInfo();
         if (evaluationBar != null) {
             evaluationBar.setEvaluation(evalWhiteScore, evalIsMate, evalMateMoves, hasEval, cb != null && cb.flipped);
@@ -2168,6 +2219,117 @@ public class DroidFish extends AppCompatActivity
             lastComputationMillis = 0;
         }
         updateNotification();
+        updateMoveClassificationState();
+    }
+
+    private void updateMoveClassificationState() {
+        if (cb == null)
+            return;
+        boolean active = mShowMoveClassifications && (gameMode != null) && gameMode.analysisMode();
+        cb.setShowMoveClassifications(active);
+        if (!active || ctrl == null || ctrl.getGame() == null) {
+            cb.setMoveClassification(null, MoveClassification.NONE);
+            return;
+        }
+        Move lastMove = ctrl.getGame().getLastMove();
+        if (lastMove == null) {
+            cb.setMoveClassification(null, MoveClassification.NONE);
+            return;
+        }
+
+        GameTree.Node currNode = (ctrl.getGame().tree != null) ? ctrl.getGame().tree.currentNode : null;
+        if (currNode == null) {
+            cb.setMoveClassification(lastMove, MoveClassification.NONE);
+            return;
+        }
+
+        if (!hasEval || currNode.evalScore == Integer.MIN_VALUE) {
+            if (currNode.moveClassification != null) {
+                cb.setMoveClassification(lastMove, currNode.moveClassification);
+            } else {
+                cb.setMoveClassification(lastMove, MoveClassification.LOADING);
+            }
+            return;
+        }
+
+        GameTree.Node parentNode = currNode.getParent();
+        boolean isBestMove = false;
+        if (parentNode != null && parentNode.bestMove != null && lastMove.equals(parentNode.bestMove)) {
+            isBestMove = true;
+        }
+
+        Position currPos = ctrl.getGame().currPos();
+        Position prevPos = ctrl.getGame().prevPos();
+
+        int evalBefore;
+        boolean mateBefore = false;
+        int mateMovesBefore = 0;
+
+        int evalAfter = currNode.evalScore;
+        boolean mateAfter = currNode.evalIsMate;
+        int mateMovesAfter = currNode.evalMateMoves;
+        boolean isWhite = (currPos != null) ? !currPos.whiteMove : true;
+
+        if (parentNode != null && parentNode.evalScore != Integer.MIN_VALUE) {
+            evalBefore = parentNode.evalScore;
+            mateBefore = parentNode.evalIsMate;
+            mateMovesBefore = parentNode.evalMateMoves;
+        } else if (parentNode == (ctrl.getGame().tree != null ? ctrl.getGame().tree.rootNode : null)
+                && ctrl.getGame().tree != null && ctrl.getGame().tree.startPos != null
+                && TextIO.toFEN(ctrl.getGame().tree.startPos).equals(TextIO.startPosFEN)) {
+            evalBefore = 20; // Standard chess starting position evaluation (~ +0.20)
+        } else {
+            // Parent evaluation was not computed. Approximate evalBefore using material swing
+            // instead of blindly assuming 0.00 (which falsely turned every move in losing positions into a blunder!)
+            int matBefore = (prevPos != null) ? MoveClassifier.getMaterialScore(prevPos) : 0;
+            int matAfter = (currPos != null) ? MoveClassifier.getMaterialScore(currPos) : 0;
+            int matDiff = matAfter - matBefore; // Material change from White's perspective
+            evalBefore = evalAfter - matDiff;
+            mateBefore = false;
+            mateMovesBefore = 0;
+        }
+
+        // Detect piece sacrifices for Brilliant classification
+        boolean isPieceSacrifice = false;
+        if (prevPos != null && currPos != null) {
+            int matBefore = MoveClassifier.getMaterialScore(prevPos);
+            int matAfter = MoveClassifier.getMaterialScore(currPos);
+            int moverMatChange = isWhite ? (matAfter - matBefore) : (matBefore - matAfter);
+            if (moverMatChange <= -200) {
+                isPieceSacrifice = true;
+            }
+        }
+
+        // PGN NAG override if present
+        MoveClassification nagClass = null;
+        if (currNode.nag > 0) {
+            switch (currNode.nag) {
+                case 1: nagClass = MoveClassification.GOOD; break;
+                case 2: nagClass = MoveClassification.MISTAKE; break;
+                case 3: nagClass = MoveClassification.BRILLIANT; break;
+                case 4: nagClass = MoveClassification.BLUNDER; break;
+                case 5: nagClass = MoveClassification.GOOD; break;
+                case 6: nagClass = MoveClassification.INACCURACY; break;
+                case 7: nagClass = MoveClassification.GREAT; break;
+            }
+        }
+
+        boolean isBook = (bookInfoStr != null && !bookInfoStr.isEmpty());
+        MoveClassification mc;
+        if (nagClass != null) {
+            mc = nagClass;
+        } else {
+            mc = MoveClassifier.classify(
+                isBook,
+                isBestMove,
+                isWhite,
+                evalBefore, mateBefore, mateMovesBefore,
+                evalAfter, mateAfter, mateMovesAfter,
+                isPieceSacrifice
+            );
+        }
+        currNode.moveClassification = mc;
+        cb.setMoveClassification(lastMove, mc);
     }
 
     /** Truncate line to max "maxLen" characters. Truncates at

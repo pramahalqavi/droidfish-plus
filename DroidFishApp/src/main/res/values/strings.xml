@@ -791,6 +791,7 @@ If you are running on battery power, it is recommended that you change settings 
         <item>@string/load_game</item>
         <item>@string/select_engine</item>
         <item>@string/engine_options</item>
+        <item>@string/toggle_move_classifications</item>
         </string-array>
     <string-array name="button_action_values">
         <item></item>
@@ -810,7 +811,9 @@ If you are running on battery power, it is recommended that you change settings 
         <item>loadGame</item>
         <item>selectEngine</item>
         <item>engineOptions</item>
+        <item>toggleMoveClassifications</item>
     </string-array>
+    <string name="toggle_move_classifications">Toggle Move Classifications</string>
     <string-array name="move_announce_type_values">
         <item>off</item>
         <item>speech_en</item>

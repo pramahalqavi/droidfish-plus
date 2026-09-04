@@ -1032,9 +1032,15 @@ public class GameTree {
         String playerAction;        // Player action. Draw claim/offer/accept or resign.
 
         int remainingTime;          // Remaining time in ms for side that played moveStr, or INT_MIN if unknown.
-        int nag;                    // Numeric annotation glyph
+        public int nag;                    // Numeric annotation glyph
         String preComment;          // Comment before move
         String postComment;         // Comment after move
+
+        public int evalScore = Integer.MIN_VALUE; // White centipawn score, or MIN_VALUE if unknown
+        public boolean evalIsMate = false;
+        public int evalMateMoves = 0;
+        public MoveClassification moveClassification = null;
+        public Move bestMove = null;
 
         private Node parent;        // Null if root node
         int defaultChild;

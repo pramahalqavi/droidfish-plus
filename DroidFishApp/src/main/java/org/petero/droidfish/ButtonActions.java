@@ -134,6 +134,9 @@ public class ButtonActions {
         menuActions.clear();
         for (int i = 0; i < maxMenuActions; i++) {
             actionId = settings.getString("button_action_" + name + "_" + (i+1), "");
+            if (actionId.isEmpty() && name.equals("custom1") && (i + 1 == 6)) {
+                actionId = "toggleMoveClassifications";
+            }
             UIAction a = factory.getAction(actionId);
             if (a != null)
                 visible = true;

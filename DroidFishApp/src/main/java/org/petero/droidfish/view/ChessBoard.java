@@ -37,10 +37,14 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
+import org.petero.droidfish.gamelogic.MoveClassification;
 
 public abstract class ChessBoard extends View {
     public Position pos;
@@ -61,6 +65,11 @@ public abstract class ChessBoard extends View {
     public boolean highlightLastMove;         // If true, last move is marked with a rectangle
     public boolean blindMode;                 // If true, no chess pieces and arrows are drawn
     public boolean flipOppositePieces;        // If true, opposite side pieces are drawn upside down
+
+    public boolean showMoveClassifications;
+    public MoveClassification currentMoveClassification = MoveClassification.NONE;
+    public Move lastMove = null;
+    private float loadingAngle = 0f;
 
     private List<Move> moveHints;
 
@@ -87,6 +96,12 @@ public abstract class ChessBoard extends View {
     private Paint decorationPaint;
     private ArrayList<Paint> moveMarkPaint;
 
+    private Paint classificationSquarePaint;
+    private Paint classificationBadgePaint;
+    private Paint classificationOutlinePaint;
+    private Paint classificationTextPaint;
+    private Paint loadingArcPaint;
+
     public ChessBoard(Context context, AttributeSet attrs) {
         super(context, attrs);
         pos = new Position();
@@ -99,6 +114,7 @@ public abstract class ChessBoard extends View {
         highlightLastMove = true;
         blindMode = false;
         flipOppositePieces = false;
+        showMoveClassifications = false;
 
         darkPaint = new Paint();
         brightPaint = new Paint();
@@ -116,6 +132,31 @@ public abstract class ChessBoard extends View {
         decorationPaint = new Paint();
         decorationPaint.setAntiAlias(true);
 
+        classificationSquarePaint = new Paint();
+        classificationSquarePaint.setStyle(Paint.Style.FILL);
+        classificationSquarePaint.setAntiAlias(true);
+
+        classificationBadgePaint = new Paint();
+        classificationBadgePaint.setStyle(Paint.Style.FILL);
+        classificationBadgePaint.setAntiAlias(true);
+
+        classificationOutlinePaint = new Paint();
+        classificationOutlinePaint.setStyle(Paint.Style.STROKE);
+        classificationOutlinePaint.setColor(0xFFFFFFFF);
+        classificationOutlinePaint.setAntiAlias(true);
+
+        classificationTextPaint = new Paint();
+        classificationTextPaint.setColor(0xFFFFFFFF);
+        classificationTextPaint.setTextAlign(Paint.Align.CENTER);
+        classificationTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        classificationTextPaint.setAntiAlias(true);
+
+        loadingArcPaint = new Paint();
+        loadingArcPaint.setStyle(Paint.Style.STROKE);
+        loadingArcPaint.setColor(0xFF26A69A);
+        loadingArcPaint.setStrokeCap(Paint.Cap.ROUND);
+        loadingArcPaint.setAntiAlias(true);
+
         moveMarkPaint = new ArrayList<>();
         for (int i = 0; i < ColorTheme.MAX_ARROWS; i++) {
             Paint p = new Paint();
@@ -128,6 +169,22 @@ public abstract class ChessBoard extends View {
             return;
 
         setColors();
+    }
+
+    public void setShowMoveClassifications(boolean show) {
+        if (this.showMoveClassifications != show) {
+            this.showMoveClassifications = show;
+            postInvalidate();
+        }
+    }
+
+    public void setMoveClassification(Move move, MoveClassification classification) {
+        boolean changed = (this.lastMove != move) || (this.currentMoveClassification != classification);
+        this.lastMove = move;
+        this.currentMoveClassification = (classification != null) ? classification : MoveClassification.NONE;
+        if (changed) {
+            postInvalidate();
+        }
     }
 
     /** Must be called for new color theme to take effect. */
@@ -447,6 +504,14 @@ public abstract class ChessBoard extends View {
                 canvas.drawRect(xCrd, yCrd, xCrd+sqSize, yCrd+sqSize, paint);
 
                 int sq = Position.getSquare(x, y);
+                if (showMoveClassifications && lastMove != null &&
+                    currentMoveClassification != null &&
+                    currentMoveClassification != MoveClassification.NONE &&
+                    (sq == lastMove.from || sq == lastMove.to)) {
+                    classificationSquarePaint.setColor(currentMoveClassification.getHighlightColor());
+                    canvas.drawRect(xCrd, yCrd, xCrd+sqSize, yCrd+sqSize, classificationSquarePaint);
+                }
+
                 if (!(animActive && anim.squareHidden(sq) || sq == dragSquare)) {
                     int p = pos.getPiece(sq);
                     drawPiece(canvas, xCrd, yCrd, p);
@@ -463,17 +528,25 @@ public abstract class ChessBoard extends View {
         }
         drawExtraSquares(canvas);
         if (!animActive && (selectedSquare != -1)) {
-            int selX = getXFromSq(selectedSquare);
-            int selY = getYFromSq(selectedSquare);
-            selectedSquarePaint.setStrokeWidth(sqSize/(float)16);
-            XYCoord crd = sqToPix(selX, selY);
-            int x0 = crd.x;
-            int y0 = crd.y;
-            canvas.drawRect(x0, y0, x0 + sqSize, y0 + sqSize, selectedSquarePaint);
+            boolean skipSel = showMoveClassifications &&
+                              (currentMoveClassification != null) &&
+                              (currentMoveClassification != MoveClassification.NONE) &&
+                              (lastMove != null) && (selectedSquare == lastMove.to) &&
+                              !userSelectedSquare;
+            if (!skipSel) {
+                int selX = getXFromSq(selectedSquare);
+                int selY = getYFromSq(selectedSquare);
+                selectedSquarePaint.setStrokeWidth(sqSize/(float)16);
+                XYCoord crd = sqToPix(selX, selY);
+                int x0 = crd.x;
+                int y0 = crd.y;
+                canvas.drawRect(x0, y0, x0 + sqSize, y0 + sqSize, selectedSquarePaint);
+            }
         }
         if (!animActive) {
             drawMoveHints(canvas);
             drawDecorations(canvas);
+            drawMoveClassificationBadge(canvas);
         }
 
         anim.draw(canvas);
@@ -722,6 +795,56 @@ public abstract class ChessBoard extends View {
                 yCrd += (sqSize - (bounds.top + bounds.bottom)) / 2;
                 canvas.drawText(s, xCrd, yCrd, decorationPaint);
             }
+        }
+    }
+
+    private void drawMoveClassificationBadge(Canvas canvas) {
+        if (!showMoveClassifications || (lastMove == null) || (currentMoveClassification == null) ||
+            (currentMoveClassification == MoveClassification.NONE) || blindMode) {
+            return;
+        }
+
+        int toX = Position.getX(lastMove.to);
+        int toY = Position.getY(lastMove.to);
+        XYCoord crd = sqToPix(toX, toY);
+
+        float badgeRadius = sqSize * 0.17f;
+        float margin = sqSize * 0.05f;
+        float cx = crd.x + sqSize - badgeRadius - margin;
+        float cy = crd.y + badgeRadius + margin;
+
+        if (currentMoveClassification == MoveClassification.LOADING) {
+            // Draw dark circle background for spinner
+            classificationBadgePaint.setColor(0xCC212121);
+            canvas.drawCircle(cx, cy, badgeRadius, classificationBadgePaint);
+
+            // Draw rotating teal arc
+            loadingArcPaint.setStrokeWidth(Math.max(2.5f, sqSize * 0.04f));
+            float r = badgeRadius - Math.max(2f, sqSize * 0.035f);
+            RectF arcRect = new RectF(cx - r, cy - r, cx + r, cy + r);
+            canvas.drawArc(arcRect, loadingAngle, 270f, false, loadingArcPaint);
+
+            loadingAngle = (loadingAngle + 12f) % 360f;
+            postInvalidateOnAnimation();
+            return;
+        }
+
+        // Solid badge circle
+        classificationBadgePaint.setColor(currentMoveClassification.getBadgeColor());
+        canvas.drawCircle(cx, cy, badgeRadius, classificationBadgePaint);
+
+        // White border outline
+        classificationOutlinePaint.setStrokeWidth(Math.max(1.5f, sqSize * 0.025f));
+        canvas.drawCircle(cx, cy, badgeRadius, classificationOutlinePaint);
+
+        // Glyph symbol
+        String glyph = currentMoveClassification.getGlyph();
+        if ((glyph != null) && !glyph.isEmpty()) {
+            float textSize = (glyph.length() > 1) ? (badgeRadius * 1.15f) : (badgeRadius * 1.35f);
+            classificationTextPaint.setTextSize(textSize);
+            Paint.FontMetrics fm = classificationTextPaint.getFontMetrics();
+            float textY = cy - (fm.ascent + fm.descent) / 2f;
+            canvas.drawText(glyph, cx, textY, classificationTextPaint);
         }
     }
 

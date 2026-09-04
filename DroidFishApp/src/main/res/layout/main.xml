@@ -123,51 +123,7 @@
             android:baselineAligned="false"
             android:tag="m3_ignore">
 
-            <!-- 1. Flip / Custom 2 -->
-            <LinearLayout
-                android:id="@+id/custom2Item"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
-
-                <FrameLayout
-                    android:id="@+id/custom2Pill"
-                    android:layout_width="64dp"
-                    android:layout_height="32dp"
-                    android:duplicateParentState="true"
-                    android:background="@drawable/nav_indicator_pill">
-
-                    <ImageButton
-                        android:id="@+id/custom2Button"
-                        android:contentDescription="@string/buttonDesc_custom2"
-                        android:background="@null"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_gravity="center"
-                        android:clickable="false"
-                        android:focusable="false" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/custom2Label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-medium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:singleLine="true"
-                    android:ellipsize="end"
-                    android:text="@string/nav_action_flip" />
-            </LinearLayout>
-
-            <!-- 2. Action / Custom 1 -->
+            <!-- 1. Flip / Custom 1 -->
             <LinearLayout
                 android:id="@+id/custom1Item"
                 android:orientation="vertical"
@@ -208,10 +164,10 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:text="@string/nav_action_action" />
+                    android:text="@string/nav_action_flip" />
             </LinearLayout>
 
-            <!-- 3. Mode -->
+            <!-- 2. Mode -->
             <LinearLayout
                 android:id="@+id/modeItem"
                 android:orientation="vertical"
@@ -253,6 +209,50 @@
                     android:singleLine="true"
                     android:ellipsize="end"
                     android:text="@string/nav_action_mode" />
+            </LinearLayout>
+
+            <!-- 3. Action / Custom 2 (Engine) -->
+            <LinearLayout
+                android:id="@+id/custom2Item"
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:id="@+id/custom2Pill"
+                    android:layout_width="64dp"
+                    android:layout_height="32dp"
+                    android:duplicateParentState="true"
+                    android:background="@drawable/nav_indicator_pill">
+
+                    <ImageButton
+                        android:id="@+id/custom2Button"
+                        android:contentDescription="@string/buttonDesc_custom2"
+                        android:background="@null"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/custom2Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:text="@string/nav_action_action" />
             </LinearLayout>
 
             <!-- 4. Undo -->

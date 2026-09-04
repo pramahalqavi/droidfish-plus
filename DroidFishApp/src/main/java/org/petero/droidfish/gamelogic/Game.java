@@ -116,7 +116,7 @@ public class Game {
         return tree.currentPos;
     }
 
-    final Position prevPos() {
+    public final Position prevPos() {
         Move m = tree.currentNode.move;
         if (m != null) {
             tree.goBack();
