@@ -281,7 +281,7 @@ public abstract class ChessBoard extends View {
             int dx = Position.getX(move.to) - Position.getX(move.from);
             int dy = Position.getY(move.to) - Position.getY(move.from);
             double dist = Math.sqrt(dx * dx + dy * dy);
-            double t = Math.sqrt(dist) * 100;
+            double t = Math.sqrt(dist) * 50; // 2x faster animation
             animTime = (int)Math.round(t);
         }
         if (animTime > 0) {

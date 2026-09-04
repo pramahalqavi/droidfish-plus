@@ -156,6 +156,60 @@ public class MoveClassifierTest {
     }
 
     @Test
+    public void testBlunderWinningToLosing() {
+        // Was winning (+300 cp, w=0.85), now losing (-250 cp, w=0.19) -> BLUNDER!
+        MoveClassification mc = MoveClassifier.classify(
+            false, false, true, 300, false, 0, -250, false, 0, false, 0
+        );
+        assertEquals(MoveClassification.BLUNDER, mc);
+    }
+
+    @Test
+    public void testBlunderEqualToLosing() {
+        // Was around equal (0 cp, w=0.50), now losing (-250 cp, w=0.19) -> BLUNDER!
+        MoveClassification mc = MoveClassifier.classify(
+            false, false, true, 0, false, 0, -250, false, 0, false, 0
+        );
+        assertEquals(MoveClassification.BLUNDER, mc);
+    }
+
+    @Test
+    public void testBlunderLosingToMoreLosingEvalDrop() {
+        // Was losing (-300 cp, w=0.15), now collapsed to -600 cp (w=0.03, evalDrop=300) -> BLUNDER!
+        MoveClassification mc = MoveClassifier.classify(
+            false, false, true, -300, false, 0, -600, false, 0, false, 0
+        );
+        assertEquals(MoveClassification.BLUNDER, mc);
+    }
+
+    @Test
+    public void testBlunderLosingToMoreLosingHungPiece() {
+        // Was losing (-300 cp), hung a minor piece (moverMatChange = -300 cp) -> BLUNDER!
+        MoveClassification mc = MoveClassifier.classify(
+            false, false, true, -300, false, 0, -450, false, 0, false, -300
+        );
+        assertEquals(MoveClassification.BLUNDER, mc);
+    }
+
+    @Test
+    public void testMissWinningToAroundEqual() {
+        // Was winning (+250 cp, w=0.81), dropped to around equal (0 cp, w=0.50) -> MISS!
+        MoveClassification mc = MoveClassifier.classify(
+            false, false, true, 250, false, 0, 0, false, 0, false, 0
+        );
+        assertEquals(MoveClassification.MISS, mc);
+    }
+
+    @Test
+    public void testMissWinningToLessWinning() {
+        // Was winning (+350 cp, w=0.88), dropped to less winning (+120 cp, w=0.67, delta=0.21) -> MISS!
+        MoveClassification mc = MoveClassifier.classify(
+            false, false, true, 350, false, 0, 120, false, 0, false, 0
+        );
+        assertEquals(MoveClassification.MISS, mc);
+    }
+
+    @Test
     public void testGetMaterialScore() throws ChessParseError {
         Position pos = TextIO.readFEN(TextIO.startPosFEN);
         int mat = MoveClassifier.getMaterialScore(pos);

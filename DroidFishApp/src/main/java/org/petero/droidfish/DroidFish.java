@@ -2289,12 +2289,13 @@ public class DroidFish extends AppCompatActivity
             mateMovesBefore = 0;
         }
 
-        // Detect piece sacrifices for Brilliant classification
+        // Detect piece sacrifices and material changes
         boolean isPieceSacrifice = false;
+        int moverMatChange = 0;
         if (prevPos != null && currPos != null) {
             int matBefore = MoveClassifier.getMaterialScore(prevPos);
             int matAfter = MoveClassifier.getMaterialScore(currPos);
-            int moverMatChange = isWhite ? (matAfter - matBefore) : (matBefore - matAfter);
+            moverMatChange = isWhite ? (matAfter - matBefore) : (matBefore - matAfter);
             if (moverMatChange <= -200) {
                 isPieceSacrifice = true;
             }
@@ -2325,7 +2326,8 @@ public class DroidFish extends AppCompatActivity
                 isWhite,
                 evalBefore, mateBefore, mateMovesBefore,
                 evalAfter, mateAfter, mateMovesAfter,
-                isPieceSacrifice
+                isPieceSacrifice,
+                moverMatChange
             );
         }
         currNode.moveClassification = mc;

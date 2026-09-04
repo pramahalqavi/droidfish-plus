@@ -58,11 +58,27 @@ public class MoveClassifier {
         return classify(isBook, false, whiteMoved,
                 beforeScore, beforeIsMate, beforeMateMoves,
                 afterScore, afterIsMate, afterMateMoves,
-                isPieceSacrifice);
+                isPieceSacrifice, 0);
     }
 
     /**
      * Classify move based on position before and after move, with engine bestMove verification.
+     */
+    public static MoveClassification classify(
+            boolean isBook,
+            boolean isBestMove,
+            boolean whiteMoved,
+            int beforeScore, boolean beforeIsMate, int beforeMateMoves,
+            int afterScore, boolean afterIsMate, int afterMateMoves,
+            boolean isPieceSacrifice) {
+        return classify(isBook, isBestMove, whiteMoved,
+                beforeScore, beforeIsMate, beforeMateMoves,
+                afterScore, afterIsMate, afterMateMoves,
+                isPieceSacrifice, 0);
+    }
+
+    /**
+     * Classify move based on position before and after move, with bestMove and material swing verification.
      *
      * @param isBook True if move is in opening book
      * @param isBestMove True if move matches the engine's #1 recommendation
@@ -74,6 +90,7 @@ public class MoveClassifier {
      * @param afterIsMate True if after position is a mate score
      * @param afterMateMoves Mate distance after the move
      * @param isPieceSacrifice True if player sacrificed material on this move
+     * @param moverMatChange Centipawn material change from the mover's perspective
      * @return MoveClassification
      */
     public static MoveClassification classify(
@@ -82,7 +99,8 @@ public class MoveClassifier {
             boolean whiteMoved,
             int beforeScore, boolean beforeIsMate, int beforeMateMoves,
             int afterScore, boolean afterIsMate, int afterMateMoves,
-            boolean isPieceSacrifice) {
+            boolean isPieceSacrifice,
+            int moverMatChange) {
 
         if (isBook) {
             return MoveClassification.BOOK;
@@ -96,29 +114,19 @@ public class MoveClassifier {
 
         double delta = Math.max(0.0, wBefore - wAfter);
 
+        // Mover centipawn drop calculation
+        int moverBeforeCp = whiteMoved ? beforeScore : -beforeScore;
+        int moverAfterCp = whiteMoved ? afterScore : -afterScore;
+        int evalDrop = moverBeforeCp - moverAfterCp;
+
         // Brilliant: Piece sacrifice that maintains winning or equal advantage
         if ((delta <= 0.02 || isBestMove) && isPieceSacrifice && wAfter >= 0.45) {
             return MoveClassification.BRILLIANT;
         }
 
-        // Best move: Top engine choice is always BEST (even in a losing position)
+        // Best move: Top engine choice is always BEST
         if (isBestMove) {
             return MoveClassification.BEST;
-        }
-
-        // Check if move walked into forced checkmate that didn't exist before
-        boolean allowedForcedMate = !beforeIsMate && afterIsMate &&
-            ((whiteMoved && afterMateMoves < 0) || (!whiteMoved && afterMateMoves > 0));
-        if (allowedForcedMate) {
-            return MoveClassification.BLUNDER;
-        }
-
-        // Check if player threw away a forced win/checkmate
-        boolean missedForcedMate = beforeIsMate &&
-            ((whiteMoved && beforeMateMoves > 0) || (!whiteMoved && beforeMateMoves < 0)) &&
-            (!afterIsMate || (whiteMoved ? afterMateMoves <= 0 : afterMateMoves >= 0));
-        if (missedForcedMate) {
-            return MoveClassification.MISS;
         }
 
         // Great: Turned a losing position into equal, or equal into winning (only move holding)
@@ -128,7 +136,7 @@ public class MoveClassifier {
             }
         }
 
-        // Best move (delta <= 0.005, maintained winning chances)
+        // Best move by delta (delta <= 0.005, maintained winning chances)
         if (delta <= 0.005) {
             return MoveClassification.BEST;
         }
@@ -143,22 +151,92 @@ public class MoveClassifier {
             return MoveClassification.GOOD;
         }
 
+        // Check forced mate transitions
+        boolean allowedForcedMate = !beforeIsMate && afterIsMate &&
+            ((whiteMoved && afterMateMoves < 0) || (!whiteMoved && afterMateMoves > 0));
+        boolean missedForcedMate = beforeIsMate &&
+            ((whiteMoved && beforeMateMoves > 0) || (!whiteMoved && beforeMateMoves < 0)) &&
+            (!afterIsMate || (whiteMoved ? afterMateMoves <= 0 : afterMateMoves >= 0));
+
+        // ==========================================
+        // 1. BLUNDER
+        // - Winning to losing
+        // - Around equal to losing
+        // - Losing to even more losing
+        // ==========================================
+
+        // Allowed forced checkmate against mover
+        if (allowedForcedMate) {
+            return MoveClassification.BLUNDER;
+        }
+
+        // Winning to losing: was winning (wBefore >= 0.58), now losing (wAfter <= 0.38)
+        if (wBefore >= 0.58 && wAfter <= 0.38) {
+            return MoveClassification.BLUNDER;
+        }
+
+        // Around equal to losing: was equal/near equal (wBefore >= 0.38), now clearly losing (wAfter <= 0.28) with notable drop
+        if (wBefore >= 0.38 && wAfter <= 0.28 && delta >= 0.15) {
+            return MoveClassification.BLUNDER;
+        }
+
+        // Losing to even more losing: already losing (wBefore <= 0.35), but made position much worse
+        if (wBefore <= 0.35) {
+            // Hung a piece (material drop <= -200 cp) confirmed by engine loss
+            if (moverMatChange <= -200 && delta >= 0.02) {
+                return MoveClassification.BLUNDER;
+            }
+            // Severe eval collapse (eval dropped by >= 250 cp)
+            if (evalDrop >= 250 && delta >= 0.02) {
+                return MoveClassification.BLUNDER;
+            }
+            // Substantial win-chance collapse in losing position
+            if (wBefore >= 0.15 && wAfter <= 0.05 && delta >= 0.10) {
+                return MoveClassification.BLUNDER;
+            }
+        }
+
+        // Catastrophic delta drop that ends in a losing or dead-lost position
+        if (delta >= 0.30 && wAfter <= 0.38) {
+            return MoveClassification.BLUNDER;
+        }
+
+        // ==========================================
+        // 2. MISS (Miss win)
+        // - Winning to around equal
+        // - Winning to less winning
+        // ==========================================
+
+        // Had a forced mate and threw it away, but not losing (wAfter >= 0.38)
+        if (missedForcedMate && wAfter >= 0.38) {
+            return MoveClassification.MISS;
+        }
+
+        // Winning to around equal: was winning (wBefore >= 0.60), dropped to around equal (0.38 <= wAfter <= 0.58), delta >= 0.10
+        if (wBefore >= 0.60 && (wAfter >= 0.38 && wAfter <= 0.58) && delta >= 0.10) {
+            return MoveClassification.MISS;
+        }
+
+        // Winning to less winning: was clearly winning (wBefore >= 0.65), still ahead (wAfter >= 0.50), but dropped substantial winning chances (delta >= 0.12)
+        if (wBefore >= 0.65 && wAfter >= 0.50 && delta >= 0.12) {
+            return MoveClassification.MISS;
+        }
+
+        // ==========================================
+        // 3. INACCURACY & MISTAKE
+        // ==========================================
+
         // Inaccuracy: Expected points drop <= 0.10 (10%)
         if (delta <= 0.10) {
             return MoveClassification.INACCURACY;
         }
 
-        // Mistake: Expected points drop <= 0.20 (20%)
-        if (delta <= 0.20) {
+        // Mistake: Noticeable error that worsened position (delta <= 0.22)
+        if (delta <= 0.22) {
             return MoveClassification.MISTAKE;
         }
 
-        // Miss: Missed winning chance (was winning >= 65%, but dropped to <= 50%)
-        if (wBefore >= 0.65 && wAfter <= 0.50 && delta >= 0.15) {
-            return MoveClassification.MISS;
-        }
-
-        // Blunder: Expected points drop > 0.20 (20%)
-        return MoveClassification.BLUNDER;
+        // Fallback for large drops that didn't meet earlier specific conditions
+        return (wAfter <= 0.35) ? MoveClassification.BLUNDER : MoveClassification.MISTAKE;
     }
 }
