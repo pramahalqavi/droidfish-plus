@@ -102,6 +102,11 @@ public class Preferences extends PreferenceActivity {
                 });
             }
 
+            android.app.Activity act = getActivity();
+            if (act != null) {
+                Util.applySystemBarAppearance(act);
+            }
+
             return v;
         }
     }
@@ -120,6 +125,7 @@ public class Preferences extends PreferenceActivity {
             isDark = (nightMode == Configuration.UI_MODE_NIGHT_YES);
         }
         setTheme(isDark ? R.style.PreferencesTheme_Dark : R.style.PreferencesTheme_Light);
+        Util.applySystemBarAppearance(this);
     }
 
     @Override
@@ -132,11 +138,46 @@ public class Preferences extends PreferenceActivity {
                             .replace(android.R.id.content, new Fragment())
                             .commit();
         Util.setFullScreenMode(this, settings);
+        Util.applySystemBarAppearance(this);
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        Util.applySystemBarAppearance(this);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            Util.applySystemBarAppearance(this);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Util.applySystemBarAppearance(this);
     }
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(DroidFishApp.setLanguage(newBase, false));
+        Context context = DroidFishApp.setLanguage(newBase, false);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String theme = settings.getString("uiTheme", "system");
+        int nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED;
+        if ("dark".equals(theme)) {
+            nightMode = Configuration.UI_MODE_NIGHT_YES;
+        } else if ("light".equals(theme)) {
+            nightMode = Configuration.UI_MODE_NIGHT_NO;
+        }
+        if (nightMode != Configuration.UI_MODE_NIGHT_UNDEFINED && android.os.Build.VERSION.SDK_INT >= 17) {
+            Configuration config = new Configuration(context.getResources().getConfiguration());
+            config.uiMode = (config.uiMode & ~Configuration.UI_MODE_NIGHT_MASK) | nightMode;
+            context = context.createConfigurationContext(config);
+        }
+        super.attachBaseContext(context);
     }
 
     @Override

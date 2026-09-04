@@ -28,12 +28,16 @@ import android.graphics.Color;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 public final class Util {
     public final static String boldStart;
@@ -90,6 +94,102 @@ public final class Util {
             attrs.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
         a.getWindow().setAttributes(attrs);
+        applySystemBarAppearance(a);
+    }
+
+    /** Ensure system status bar and navigation bar text/icons adapt to light/dark UI theme. */
+    public static void applySystemBarAppearance(Activity a) {
+        if (a == null) return;
+        Window window = a.getWindow();
+        if (window == null) return;
+        boolean isDark = DroidFishApp.isDarkMode(a);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            int color = isDark ? 0xFF1D2024 : 0xFFEBEFF3;
+            window.setStatusBarColor(color);
+            window.setNavigationBarColor(color);
+        }
+
+        View decorView = window.getDecorView();
+
+        // Android 6.0 - 10 (API 23 - 29) systemUiVisibility
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int flags = decorView.getSystemUiVisibility();
+            if (!isDark) {
+                flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            } else {
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!isDark) {
+                    flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                } else {
+                    flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                }
+            }
+            decorView.setSystemUiVisibility(flags);
+        }
+
+        // Android 11+ (API 30+) WindowInsetsController
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController wic = window.getInsetsController();
+            if (wic != null) {
+                int statusMask = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS;
+                wic.setSystemBarsAppearance(!isDark ? statusMask : 0, statusMask);
+                int navMask = android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                wic.setSystemBarsAppearance(!isDark ? navMask : 0, navMask);
+            }
+        }
+
+        // AndroidX WindowInsetsControllerCompat fallback
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+        if (controller != null) {
+            controller.setAppearanceLightStatusBars(!isDark);
+            controller.setAppearanceLightNavigationBars(!isDark);
+        }
+
+        if (decorView != null) {
+            decorView.post(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    int color = isDark ? 0xFF1D2024 : 0xFFEBEFF3;
+                    window.setStatusBarColor(color);
+                    window.setNavigationBarColor(color);
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    int flags = decorView.getSystemUiVisibility();
+                    if (!isDark) {
+                        flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                    } else {
+                        flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        if (!isDark) {
+                            flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                        } else {
+                            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                        }
+                    }
+                    decorView.setSystemUiVisibility(flags);
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    android.view.WindowInsetsController wic = window.getInsetsController();
+                    if (wic != null) {
+                        int statusMask = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS;
+                        wic.setSystemBarsAppearance(!isDark ? statusMask : 0, statusMask);
+                        int navMask = android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                        wic.setSystemBarsAppearance(!isDark ? navMask : 0, navMask);
+                    }
+                }
+                WindowInsetsControllerCompat c = WindowCompat.getInsetsController(window, decorView);
+                if (c != null) {
+                    c.setAppearanceLightStatusBars(!isDark);
+                    c.setAppearanceLightNavigationBars(!isDark);
+                }
+            });
+        }
     }
 
     /** Change foreground/background color in a view. */

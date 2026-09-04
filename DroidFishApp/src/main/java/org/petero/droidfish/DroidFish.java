@@ -107,7 +107,10 @@ import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -124,8 +127,11 @@ import androidx.core.content.FileProvider;
 import androidx.drawerlayout.widget.DrawerLayout;
 import android.text.Editable;
 import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.style.ImageSpan;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -1062,7 +1068,16 @@ public class DroidFish extends AppCompatActivity
             ctrl.setGuiPaused(false);
         notificationActive = true;
         updateNotification();
+        Util.applySystemBarAppearance(this);
         super.onResume();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            Util.applySystemBarAppearance(this);
+        }
     }
 
     @Override
@@ -3863,16 +3878,62 @@ public class DroidFish extends AppCompatActivity
     private Handler handlerTimer = new Handler();
     private Runnable r = () -> ctrl.updateRemainingTime();
 
+    private static class CenteredImageSpan extends ImageSpan {
+        CenteredImageSpan(Drawable d) {
+            super(d);
+        }
+
+        @Override
+        public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
+            Drawable d = getDrawable();
+            Rect rect = d.getBounds();
+            if (fm != null) {
+                Paint.FontMetricsInt paintFm = paint.getFontMetricsInt();
+                fm.ascent = paintFm.ascent;
+                fm.descent = paintFm.descent;
+                fm.top = paintFm.top;
+                fm.bottom = paintFm.bottom;
+            }
+            return rect.right;
+        }
+
+        @Override
+        public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
+            Drawable b = getDrawable();
+            canvas.save();
+            Paint.FontMetricsInt fm = paint.getFontMetricsInt();
+            int transY = y + (fm.descent + fm.ascent - b.getBounds().bottom) / 2;
+            canvas.translate(x, transY);
+            b.draw(canvas);
+            canvas.restore();
+        }
+    }
+
+    private CharSequence formatClockText(boolean isWhite, String text) {
+        if (text == null) text = "";
+        SpannableStringBuilder ssb = new SpannableStringBuilder("  " + text);
+        int resId = isWhite ? R.drawable.ic_clock_white_square : R.drawable.ic_clock_black_square;
+        Drawable d = ContextCompat.getDrawable(this, resId);
+        if (d != null) {
+            d = d.mutate();
+            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, getResources().getDisplayMetrics());
+            d.setBounds(0, 0, size, size);
+            CenteredImageSpan span = new CenteredImageSpan(d);
+            ssb.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return ssb;
+    }
+
     @Override
     public void setRemainingTime(int wTime, int bTime, int nextUpdate) {
         if (ctrl.getGameMode().clocksActive()) {
-            whiteTitleText.setText(getString(R.string.white_square_character) + " " + timeToString(wTime));
-            blackTitleText.setText(getString(R.string.black_square_character) + " " + timeToString(bTime));
+            whiteTitleText.setText(formatClockText(true, timeToString(wTime)));
+            blackTitleText.setText(formatClockText(false, timeToString(bTime)));
         } else {
             TreeMap<String,String> headers = new TreeMap<>();
             ctrl.getHeaders(headers);
-            whiteTitleText.setText(headers.get("White"));
-            blackTitleText.setText(headers.get("Black"));
+            whiteTitleText.setText(formatClockText(true, headers.get("White")));
+            blackTitleText.setText(formatClockText(false, headers.get("Black")));
         }
         handlerTimer.removeCallbacks(r);
         if (nextUpdate > 0)

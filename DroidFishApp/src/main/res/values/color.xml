@@ -38,12 +38,18 @@
     <color name="md_theme_surfaceContainerHighest">#DFE3E8</color>
 
     <!-- Chess Timer Pill Colors -->
-    <color name="clock_white_bg">#E8EEF5</color>
-    <color name="clock_white_fg">#1A202C</color>
-    <color name="clock_black_bg">#2D3748</color>
-    <color name="clock_black_fg">#F7FAFC</color>
+    <color name="clock_pill_bg">#EAEFF5</color>
+    <color name="clock_pill_fg">#1D1B20</color>
+    <color name="clock_white_bg">#EAEFF5</color>
+    <color name="clock_white_fg">#1D1B20</color>
+    <color name="clock_black_bg">#EAEFF5</color>
+    <color name="clock_black_fg">#1D1B20</color>
 
     <!-- Drawer Colors -->
     <color name="drawer_surface">#FFFFFF</color>
     <color name="drawer_item_selected">#E0EEFA</color>
+
+    <!-- Explicit System Bar Colors -->
+    <color name="status_bar_light">#EBEFF3</color>
+    <color name="status_bar_dark">#1D2024</color>
 </resources>

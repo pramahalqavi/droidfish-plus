@@ -39,6 +39,8 @@
         <!-- System Bars -->
         <item name="android:statusBarColor">@color/md_theme_surfaceContainer</item>
         <item name="android:navigationBarColor">@color/md_theme_surfaceContainer</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
 
         <!-- Material Dialog Theme -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
@@ -88,16 +90,31 @@
     <style name="PreferencesTheme" parent="Theme.AppCompat.DayNight">
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorAccent">@color/md_theme_primary</item>
+        <item name="android:statusBarColor">@color/status_bar_light</item>
+        <item name="android:navigationBarColor">@color/status_bar_light</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
     <style name="PreferencesTheme.Light" parent="Theme.AppCompat.Light">
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorAccent">@color/md_theme_primary</item>
+        <item name="android:statusBarColor">@color/status_bar_light</item>
+        <item name="android:navigationBarColor">@color/status_bar_light</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
     <style name="PreferencesTheme.Dark" parent="Theme.AppCompat">
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorAccent">@color/md_theme_primary</item>
+        <item name="android:statusBarColor">@color/status_bar_dark</item>
+        <item name="android:navigationBarColor">@color/status_bar_dark</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
     <!-- Translucent Dialog Activity Theme -->
