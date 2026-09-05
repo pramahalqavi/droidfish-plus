@@ -95,8 +95,8 @@
     <string name="no_pgn_files">Файли в директорії DroidFish/pgn не знайдені</string>
     <string name="no_fen_files">Файли не знайдені в каталозі DroidFish/epd на SD-карті</string>
     <string name="select_color_theme">Обрати колір теми</string>
-    <string name="colortheme_original">Оригінал</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Синій</string>
     <string name="colortheme_grey">Сірий</string>
     <string name="colortheme_scid_default">Scid за замовчуванням</string>

@@ -71,6 +71,9 @@ public class DroidChessController {
     private Move promoteMove;
 
     private int searchId;
+    public final synchronized int getSearchId() {
+        return searchId;
+    }
     private volatile ThinkingInfo latestThinkingInfo = null;
 
     /** Constructor. */
@@ -727,6 +730,8 @@ public class DroidChessController {
         private int pvInfoSearchId = -1; // Search ID corresponding to pvInfoV
 
         public final void clearSearchInfo(int id) {
+            if (id != searchId)
+                return;
             pvInfoSearchId = -1;
             ponderMove = null;
             pvInfoV.clear();
@@ -735,15 +740,24 @@ public class DroidChessController {
             bookMoves = null;
             eco = "";
             distToEcoTree = 0;
+            if (game != null && game.currPos() != null)
+                whiteMove = game.currPos().whiteMove;
             setSearchInfo(id);
         }
 
         private void setSearchInfo(final int id) {
+            if (id != searchId)
+                return;
             StringBuilder buf = new StringBuilder();
             boolean hasScore = false;
             int whiteScore = 0;
             boolean isMate = false;
             int mateMoves = 0;
+
+            boolean hasSecondScore = false;
+            int secondScore = 0;
+            boolean secondIsMate = false;
+            int secondMateMoves = 0;
 
             for (int i = 0; i < pvInfoV.size(); i++) {
                 PvInfo pvi = pvInfoV.get(i);
@@ -757,23 +771,33 @@ public class DroidChessController {
                     } else {
                         whiteScore = whiteMove ? pvi.score : -pvi.score;
                     }
+                } else if (!hasSecondScore) {
+                    hasSecondScore = true;
+                    secondIsMate = pvi.isMate;
+                    if (pvi.isMate) {
+                        secondMateMoves = whiteMove ? pvi.score : -pvi.score;
+                    } else {
+                        secondScore = whiteMove ? pvi.score : -pvi.score;
+                    }
                 }
-                if (i > 0)
-                    buf.append('\n');
-                buf.append(String.format(Locale.US, "[%d] ", pvi.depth));
-                boolean negateScore = !whiteMove && gui.whiteBasedScores();
-                if (pvi.upperBound || pvi.lowerBound) {
-                    boolean upper = pvi.upperBound ^ negateScore;
-                    buf.append(upper ? "<=" : ">=");
-                }
-                int score = negateScore ? -pvi.score : pvi.score;
-                if (pvi.isMate) {
-                    buf.append(String.format(Locale.US, "m%d", score));
-                } else {
-                    buf.append(String.format(Locale.US, "%.2f", score / 100.0));
-                }
+                if (i < numPV) {
+                    if (buf.length() > 0)
+                        buf.append('\n');
+                    buf.append(String.format(Locale.US, "[%d] ", pvi.depth));
+                    boolean negateScore = !whiteMove && gui.whiteBasedScores();
+                    if (pvi.upperBound || pvi.lowerBound) {
+                        boolean upper = pvi.upperBound ^ negateScore;
+                        buf.append(upper ? "<=" : ">=");
+                    }
+                    int score = negateScore ? -pvi.score : pvi.score;
+                    if (pvi.isMate) {
+                        buf.append(String.format(Locale.US, "m%d", score));
+                    } else {
+                        buf.append(String.format(Locale.US, "%.2f", score / 100.0));
+                    }
 
-                buf.append(pvi.pvStr);
+                    buf.append(pvi.pvStr);
+                }
             }
             StringBuilder statStrTmp = new StringBuilder();
             if (currDepth > 0) {
@@ -826,6 +850,10 @@ public class DroidChessController {
             ti.whiteScore = whiteScore;
             ti.isMate = isMate;
             ti.mateMoves = mateMoves;
+            ti.hasSecondScore = hasSecondScore;
+            ti.secondScore = secondScore;
+            ti.secondIsMate = secondIsMate;
+            ti.secondMateMoves = secondMateMoves;
             latestThinkingInfo = ti;
             gui.runOnUIThread(() -> setThinkingInfo(ti));
         }
@@ -850,12 +878,20 @@ public class DroidChessController {
 
         @Override
         public void notifyDepth(int id, int depth) {
+            if (id != searchId)
+                return;
             currDepth = depth;
+            if (game != null && game.currPos() != null)
+                whiteMove = game.currPos().whiteMove ^ (ponderMove != null);
             setSearchInfo(id);
         }
 
         @Override
         public void notifyCurrMove(int id, Position pos, Move m, int moveNr) {
+            if (id != searchId)
+                return;
+            if (pos != null)
+                whiteMove = pos.whiteMove ^ (ponderMove != null);
             Position tmpPos = new Position(pos);
             if (!TextIO.isValid(tmpPos, m))
                 m = new Move(0, 0, 0);
@@ -868,6 +904,8 @@ public class DroidChessController {
         @SuppressWarnings("unchecked")
         @Override
         public void notifyPV(int id, Position pos, ArrayList<PvInfo> pvInfo, Move ponderMove) {
+            if (id != searchId)
+                return;
             this.ponderMove = ponderMove;
             pvInfoSearchId = id;
             pvInfoV = (ArrayList<PvInfo>) pvInfo.clone();
@@ -906,6 +944,10 @@ public class DroidChessController {
 
         @Override
         public void notifyStats(int id, long nodes, int nps, long tbHits, int hash, int time, int seldepth) {
+            if (id != searchId)
+                return;
+            if (game != null && game.currPos() != null)
+                whiteMove = game.currPos().whiteMove ^ (ponderMove != null);
             currNodes = nodes;
             currNps = nps;
             currTBHits = tbHits;
@@ -918,6 +960,8 @@ public class DroidChessController {
         @Override
         public void notifyBookInfo(int id, String bookInfo, ArrayList<Move> moveList,
                                    String eco, int distToEcoTree) {
+            if (id != searchId)
+                return;
             this.bookInfo = bookInfo;
             bookMoves = moveList;
             this.eco = eco;
@@ -1014,10 +1058,11 @@ public class DroidChessController {
         if (!computerPlayer.sameSearchId(searchId)) {
             if (analysis) {
                 Pair<Position, ArrayList<Move>> ph = game.getUCIHistory();
+                int effPV = Math.max(numPV, 2);
                 SearchRequest sr = SearchRequest.analyzeRequest(
                         searchId, ph.first, ph.second,
                         new Position(game.currPos()),
-                        game.haveDrawOffer(), engine, numPV);
+                        game.haveDrawOffer(), engine, effPV);
                 computerPlayer.queueAnalyzeRequest(sr);
             } else if (computersTurn || ponder) {
                 listener.clearSearchInfo(searchId);

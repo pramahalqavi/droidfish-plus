@@ -95,8 +95,8 @@ Jeśli pracujesz na baterii, zalecana jest zmiana ustawień, w celu oszczędzani
     <string name="no_pgn_files">Nie znaleziono plików w katalogu DroidFish/pgn na karcie SD</string>
     <string name="no_fen_files">Nie znaleziono plików w katalogu DroidFish/epd na karcie SD</string>
     <string name="select_color_theme">Wybierz schemat kolorów</string>
-    <string name="colortheme_original">Oryginalny</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Niebieski</string>
     <string name="colortheme_grey">Szary</string>
     <string name="colortheme_scid_default">Scid - domyślny</string>

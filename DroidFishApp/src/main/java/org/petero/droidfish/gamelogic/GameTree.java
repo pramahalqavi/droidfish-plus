@@ -1039,6 +1039,10 @@ public class GameTree {
         public int evalScore = Integer.MIN_VALUE; // White centipawn score, or MIN_VALUE if unknown
         public boolean evalIsMate = false;
         public int evalMateMoves = 0;
+        public boolean hasSecondScore = false;
+        public int secondScore = 0;
+        public boolean secondIsMate = false;
+        public int secondMateMoves = 0;
         public MoveClassification moveClassification = null;
         public Move bestMove = null;
 

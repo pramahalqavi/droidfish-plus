@@ -63,31 +63,43 @@ public class ColorTheme {
     };
     private static final String prefPrefix = "color_";
 
-    private final static int defaultTheme = 2;
+    private final static int defaultTheme = 0;
     final static int[] themeNames = {
-        R.string.colortheme_original,
-        R.string.colortheme_xboard,
         R.string.colortheme_blue,
+        R.string.colortheme_lavender,
+        R.string.colortheme_forest_green,
+        R.string.colortheme_marine,
+        R.string.colortheme_terracotta,
         R.string.colortheme_grey,
         R.string.colortheme_scid_default,
         R.string.colortheme_scid_brown,
         R.string.colortheme_scid_green
     };
     private final static String[][] themeColors = {
-    { // Original
-        "#FF808080", "#FFBEBE5A", "#FFFF0000", "#FF000000", "#FFFFFFFF", "#FF888888",
-        "#A01F1FFF", "#A0FF1F1F", "#501F1FFF", "#50FF1F1F", "#371F1FFF", "#3CFF1F1F", "#1E1F1FFF", "#28FF1F1F",
-        "#FFFF0000", "#FF9F9F66", "#FFC0C000", "#FFF7FBC6", "#FF292C10"
-    },
-    { // XBoard
-        "#FF77A26D", "#FFC8C365", "#FFFFFF00", "#FF202020", "#FFFFFFCC", "#FF6B9262",
-        "#A01F1FFF", "#A0FF1F1F", "#501F1FFF", "#50FF1F1F", "#371F1FFF", "#3CFF1F1F", "#1E1F1FFF", "#28FF1F1F",
-        "#FFFF0000", "#FF808080", "#FFC0C000", "#FFEFFBBC", "#FF28320C"
-    },
     { // Blue
         "#FF83A5D2", "#FFFFFFFA", "#FF3232D1", "#FF282828", "#FFF0F0F0", "#FF3333FF",
         "#A01F1FFF", "#A01FFF1F", "#501F1FFF", "#501FFF1F", "#371F1FFF", "#3C1FFF1F", "#1E1F1FFF", "#281FFF1F",
         "#FFFF0000", "#FF808080", "#FFC0C000", "#FFFFFF00", "#FF2E2B53"
+    },
+    { // Lavender
+        "#FF8677B9", "#FFF0F1F0", "#FFFF0000", "#FF000000", "#FFFFFFFF", "#FF8677B9",
+        "#A01F1FFF", "#A0FF1F1F", "#501F1FFF", "#50FF1F1F", "#371F1FFF", "#3CFF1F1F", "#1E1F1FFF", "#28FF1F1F",
+        "#FF8677B9", "#FF808080", "#FFC0C000", "#FFFFFFFF", "#FF202020"
+    },
+    { // Forest Green
+        "#FF33674B", "#FFEEEEEB", "#FFFF0000", "#FF000000", "#FFFFFFFF", "#FF33674B",
+        "#A01F1FFF", "#A0FF1F1F", "#501F1FFF", "#50FF1F1F", "#371F1FFF", "#3CFF1F1F", "#1E1F1FFF", "#28FF1F1F",
+        "#FF33674B", "#FF808080", "#FFC0C000", "#FFFFFFFF", "#FF202020"
+    },
+    { // Marine
+        "#FF4E7398", "#FFEAE9D2", "#FFFF0000", "#FF000000", "#FFFFFFFF", "#FF4E7398",
+        "#A01F1FFF", "#A0FF1F1F", "#501F1FFF", "#50FF1F1F", "#371F1FFF", "#3CFF1F1F", "#1E1F1FFF", "#28FF1F1F",
+        "#FF4E7398", "#FF808080", "#FFC0C000", "#FFFFFFFF", "#FF202020"
+    },
+    { // Terracotta
+        "#FFB95948", "#FFF4DBC4", "#FFFF0000", "#FF000000", "#FFFFFFFF", "#FFB95948",
+        "#A01F1FFF", "#A0FF1F1F", "#501F1FFF", "#50FF1F1F", "#371F1FFF", "#3CFF1F1F", "#1E1F1FFF", "#28FF1F1F",
+        "#FFB95948", "#FF808080", "#FFC0C000", "#FFFFFFFF", "#FF202020"
     },
     { // Grey
         "#FF666666", "#FFDDDDDD", "#FFFF0000", "#FF000000", "#FFFFFFFF", "#FF888888",

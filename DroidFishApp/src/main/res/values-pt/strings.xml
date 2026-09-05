@@ -95,8 +95,8 @@ Se você está usando somente a bateria, recomenda-se que você mude as configur
     <string name="no_pgn_files">Nenhum arquivo encontrado no diretório DroidFish/pgn no cartão SD</string>
     <string name="no_fen_files">Nenhum arquivo encontrado no diretório DroidFish/epd no SD</string>
     <string name="select_color_theme">Cor do tema</string>
-    <string name="colortheme_original">Original</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Azul</string>
     <string name="colortheme_grey">Cinza</string>
     <string name="colortheme_scid_default">Padrão do Scid</string>

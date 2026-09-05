@@ -95,8 +95,8 @@ Se l\'alimentazione è a batteria, è consigliabile modificare le impostazioni p
     <string name="no_pgn_files">Nessun file trovato nella cartella DroidFish/pgn sulla scheda SD</string>
     <string name="no_fen_files">Nessun file trovato nella cartella DroidFish/epd sulla scheda SD</string>
     <string name="select_color_theme">Seleziona un Tema di Colori</string>
-    <string name="colortheme_original">Originale</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Blu</string>
     <string name="colortheme_grey">Grigio</string>
     <string name="colortheme_scid_default">Scid predefinito</string>

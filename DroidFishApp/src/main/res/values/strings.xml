@@ -98,9 +98,11 @@ If you are running on battery power, it is recommended that you change settings 
     <string name="no_pgn_files">No files found in directory DroidFish/pgn on the SD card</string>
     <string name="no_fen_files">No files found in directory DroidFish/epd on the SD card</string>
     <string name="select_color_theme">Select Color Theme</string>
-    <string name="colortheme_original">Original</string>
-    <string name="colortheme_xboard">XBoard</string>
     <string name="colortheme_blue">Blue</string>
+    <string name="colortheme_lavender">Lavender</string>
+    <string name="colortheme_forest_green">Forest Green</string>
+    <string name="colortheme_marine">Marine</string>
+    <string name="colortheme_terracotta">Terracotta</string>
     <string name="colortheme_grey">Grey</string>
     <string name="colortheme_scid_default">Scid Default</string>
     <string name="colortheme_scid_brown">Scid Brown</string>

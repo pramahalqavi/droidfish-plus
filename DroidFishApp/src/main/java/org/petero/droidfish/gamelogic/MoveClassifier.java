@@ -101,6 +101,28 @@ public class MoveClassifier {
             int afterScore, boolean afterIsMate, int afterMateMoves,
             boolean isPieceSacrifice,
             int moverMatChange) {
+        return classify(isBook, isBestMove, whiteMoved,
+                beforeScore, beforeIsMate, beforeMateMoves,
+                afterScore, afterIsMate, afterMateMoves,
+                isPieceSacrifice, moverMatChange,
+                false, 0, false, 0);
+    }
+
+    /**
+     * Classify move with second-best move evaluation for detecting Great Moves ("only move").
+     */
+    public static MoveClassification classify(
+            boolean isBook,
+            boolean isBestMove,
+            boolean whiteMoved,
+            int beforeScore, boolean beforeIsMate, int beforeMateMoves,
+            int afterScore, boolean afterIsMate, int afterMateMoves,
+            boolean isPieceSacrifice,
+            int moverMatChange,
+            boolean hasSecondScore,
+            int secondScore,
+            boolean secondIsMate,
+            int secondMateMoves) {
 
         if (isBook) {
             return MoveClassification.BOOK;
@@ -124,16 +146,47 @@ public class MoveClassifier {
             return MoveClassification.BRILLIANT;
         }
 
-        // Best move: Top engine choice is always BEST
-        if (isBestMove) {
-            return MoveClassification.BEST;
-        }
+        // Great Move: The "only good move" in a position, or critical saving/punishing move
+        if (isBestMove || delta <= 0.005) {
+            boolean isGreat = false;
+            if (hasSecondScore) {
+                double wSecondWhite = expectedPoints(secondScore, secondIsMate, secondMateMoves);
+                double wSecond = whiteMoved ? wSecondWhite : (1.0 - wSecondWhite);
+                double gapW = wBefore - wSecond;
 
-        // Great: Turned a losing position into equal, or equal into winning (only move holding)
-        if (delta <= 0.01) {
-            if ((wBefore <= 0.35 && wAfter >= 0.48) || (wBefore <= 0.55 && wAfter >= 0.70)) {
+                int moverSecondCp = whiteMoved ? secondScore : -secondScore;
+                int cpGap = moverBeforeCp - moverSecondCp;
+
+                // 1. Second best move allows forced checkmate against mover, but best move avoids it
+                boolean secondAllowsMate = secondIsMate &&
+                    ((whiteMoved && secondMateMoves < 0) || (!whiteMoved && secondMateMoves > 0));
+                if (secondAllowsMate && wBefore >= 0.40) {
+                    isGreat = true;
+                }
+                // 2. Best move maintains winning (wBefore >= 0.58), but 2nd best drops to equal or losing (wSecond <= 0.50)
+                else if (wBefore >= 0.58 && wSecond <= 0.50 && (gapW >= 0.08 || cpGap >= 75)) {
+                    isGreat = true;
+                }
+                // 3. Best move maintains equal (wBefore >= 0.45), but 2nd best drops to losing (wSecond <= 0.35)
+                else if (wBefore >= 0.45 && wSecond <= 0.35 && (gapW >= 0.08 || cpGap >= 75)) {
+                    isGreat = true;
+                }
+                // 4. Substantial gap where any other move is significantly worse (cpGap >= 120 or gapW >= 0.12)
+                else if ((cpGap >= 120 || gapW >= 0.12) && wBefore >= 0.40) {
+                    isGreat = true;
+                }
+            } else {
+                // Heuristic fallback when second move evaluation is not available
+                // e.g. turning a losing position into equal or winning
+                if ((wBefore <= 0.35 && wAfter >= 0.48) || (wBefore <= 0.50 && wAfter >= 0.68)) {
+                    isGreat = true;
+                }
+            }
+
+            if (isGreat) {
                 return MoveClassification.GREAT;
             }
+            return MoveClassification.BEST;
         }
 
         // Best move by delta (delta <= 0.005, maintained winning chances)

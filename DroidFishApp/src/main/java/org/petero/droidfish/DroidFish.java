@@ -63,6 +63,7 @@ import org.petero.droidfish.gamelogic.GameTree;
 import org.petero.droidfish.gamelogic.GameTree.Node;
 import org.petero.droidfish.gamelogic.MoveClassification;
 import org.petero.droidfish.gamelogic.MoveClassifier;
+import org.petero.droidfish.gamelogic.MoveGen;
 import org.petero.droidfish.gamelogic.TimeControlData;
 import org.petero.droidfish.tb.Probe;
 import org.petero.droidfish.tb.ProbeResult;
@@ -2153,14 +2154,60 @@ public class DroidFish extends AppCompatActivity
         updateThinkingInfo();
         setEgtbHints(cb.getSelectedSquare());
         if (ctrl != null && ctrl.getGame() != null && ctrl.getGame().tree != null) {
+            Game.GameState gameState = ctrl.getGame().getGameState();
+            boolean isMate = (gameState == Game.GameState.WHITE_MATE || gameState == Game.GameState.BLACK_MATE);
+            if (!isMate && pos != null && MoveGen.inCheck(pos) && MoveGen.instance.legalMoves(pos).isEmpty()) {
+                isMate = true;
+            }
+            boolean isStalemate = (gameState == Game.GameState.WHITE_STALEMATE || gameState == Game.GameState.BLACK_STALEMATE);
+            if (!isStalemate && pos != null && !MoveGen.inCheck(pos) && MoveGen.instance.legalMoves(pos).isEmpty()) {
+                isStalemate = true;
+            }
+
             GameTree.Node currNode = ctrl.getGame().tree.currentNode;
-            if (currNode != null && currNode.evalScore != Integer.MIN_VALUE) {
+            if (isMate) {
+                boolean whiteWin;
+                if (gameState == Game.GameState.WHITE_MATE) {
+                    whiteWin = true;
+                } else if (gameState == Game.GameState.BLACK_MATE) {
+                    whiteWin = false;
+                } else {
+                    whiteWin = (pos != null) ? !pos.whiteMove : true;
+                }
+                hasEval = true;
+                evalWhiteScore = whiteWin ? 30000 : -30000;
+                evalIsMate = true;
+                evalMateMoves = 0;
+                if (currNode != null) {
+                    currNode.evalScore = evalWhiteScore;
+                    currNode.evalIsMate = true;
+                    currNode.evalMateMoves = 0;
+                }
+            } else if (isStalemate) {
+                hasEval = true;
+                evalWhiteScore = 0;
+                evalIsMate = false;
+                evalMateMoves = 0;
+                if (currNode != null) {
+                    currNode.evalScore = 0;
+                    currNode.evalIsMate = false;
+                    currNode.evalMateMoves = 0;
+                }
+            } else if (currNode != null && currNode.evalScore != Integer.MIN_VALUE) {
                 hasEval = true;
                 evalWhiteScore = currNode.evalScore;
                 evalIsMate = currNode.evalIsMate;
                 evalMateMoves = currNode.evalMateMoves;
             } else {
-                hasEval = false;
+                GameTree.Node parentNode = (currNode != null) ? currNode.getParent() : null;
+                if (parentNode != null && parentNode.evalScore != Integer.MIN_VALUE) {
+                    hasEval = true;
+                    evalWhiteScore = parentNode.evalScore;
+                    evalIsMate = parentNode.evalIsMate;
+                    evalMateMoves = parentNode.evalMateMoves;
+                } else {
+                    hasEval = false;
+                }
             }
         } else {
             hasEval = false;
@@ -2183,6 +2230,9 @@ public class DroidFish extends AppCompatActivity
 
     @Override
     public void setThinkingInfo(ThinkingInfo ti) {
+        if (ctrl != null && ti.id != ctrl.getSearchId()) {
+            return;
+        }
         thinkingStr1 = ti.pvStr;
         thinkingStr2 = ti.statStr;
         bookInfoStr = ti.bookInfo;
@@ -2190,28 +2240,43 @@ public class DroidFish extends AppCompatActivity
         distToEcoTree = ti.distToEcoTree;
         pvMoves = ti.pvMoves;
         bookMoves = ti.bookMoves;
-        hasEval = ti.hasScore;
-        evalWhiteScore = ti.whiteScore;
-        evalIsMate = ti.isMate;
-        evalMateMoves = ti.mateMoves;
-        if (hasEval && ctrl != null && ctrl.getGame() != null && ctrl.getGame().tree != null) {
-            GameTree.Node currNode = ctrl.getGame().tree.currentNode;
-            if (currNode != null) {
-                currNode.evalScore = ti.whiteScore;
-                currNode.evalIsMate = ti.isMate;
-                currNode.evalMateMoves = ti.mateMoves;
-                if (ti.pvMoves != null && !ti.pvMoves.isEmpty()) {
-                    ArrayList<Move> pv0 = ti.pvMoves.get(0);
-                    if (pv0 != null && !pv0.isEmpty() && pv0.get(0) != null) {
-                        currNode.bestMove = pv0.get(0);
+
+        if (ctrl != null && ctrl.getGame() != null) {
+            Game.GameState gs = ctrl.getGame().getGameState();
+            if (gs == Game.GameState.WHITE_MATE || gs == Game.GameState.BLACK_MATE) {
+                updateThinkingInfo();
+                return;
+            }
+        }
+
+        if (ti.hasScore) {
+            hasEval = true;
+            evalWhiteScore = ti.whiteScore;
+            evalIsMate = ti.isMate;
+            evalMateMoves = ti.mateMoves;
+            if (ctrl != null && ctrl.getGame() != null && ctrl.getGame().tree != null) {
+                GameTree.Node currNode = ctrl.getGame().tree.currentNode;
+                if (currNode != null) {
+                    currNode.evalScore = ti.whiteScore;
+                    currNode.evalIsMate = ti.isMate;
+                    currNode.evalMateMoves = ti.mateMoves;
+                    currNode.hasSecondScore = ti.hasSecondScore;
+                    currNode.secondScore = ti.secondScore;
+                    currNode.secondIsMate = ti.secondIsMate;
+                    currNode.secondMateMoves = ti.secondMateMoves;
+                    if (ti.pvMoves != null && !ti.pvMoves.isEmpty()) {
+                        ArrayList<Move> pv0 = ti.pvMoves.get(0);
+                        if (pv0 != null && !pv0.isEmpty() && pv0.get(0) != null) {
+                            currNode.bestMove = pv0.get(0);
+                        }
                     }
                 }
             }
+            if (evaluationBar != null) {
+                evaluationBar.setEvaluation(evalWhiteScore, evalIsMate, evalMateMoves, hasEval, cb != null && cb.flipped);
+            }
         }
         updateThinkingInfo();
-        if (evaluationBar != null) {
-            evaluationBar.setEvaluation(evalWhiteScore, evalIsMate, evalMateMoves, hasEval, cb != null && cb.flipped);
-        }
 
         if (ctrl.computerBusy()) {
             lastComputationMillis = System.currentTimeMillis();
@@ -2243,6 +2308,62 @@ public class DroidFish extends AppCompatActivity
             return;
         }
 
+        Position currPos = ctrl.getGame().currPos();
+        Position prevPos = ctrl.getGame().prevPos();
+        boolean isWhite = (currPos != null) ? !currPos.whiteMove : true;
+
+        // Check if position is checkmate or stalemate
+        Game.GameState gameState = ctrl.getGame().getGameState();
+        boolean isMate = (gameState == Game.GameState.WHITE_MATE || gameState == Game.GameState.BLACK_MATE);
+        if (!isMate && currPos != null && MoveGen.inCheck(currPos) && MoveGen.instance.legalMoves(currPos).isEmpty()) {
+            isMate = true;
+        }
+        if (isMate) {
+            boolean whiteWins;
+            if (gameState == Game.GameState.WHITE_MATE) {
+                whiteWins = true;
+            } else if (gameState == Game.GameState.BLACK_MATE) {
+                whiteWins = false;
+            } else {
+                whiteWins = (currPos != null) ? !currPos.whiteMove : true;
+            }
+            currNode.evalScore = whiteWins ? 30000 : -30000;
+            currNode.evalIsMate = true;
+            currNode.evalMateMoves = 0;
+            hasEval = true;
+            evalWhiteScore = currNode.evalScore;
+            evalIsMate = true;
+            evalMateMoves = 0;
+            if (evaluationBar != null) {
+                evaluationBar.setEvaluation(evalWhiteScore, evalIsMate, evalMateMoves, hasEval, cb != null && cb.flipped);
+            }
+            // Check if checkmate move was a piece sacrifice (brilliant), otherwise best move
+            boolean isPieceSacrifice = false;
+            if (prevPos != null && currPos != null) {
+                int matBefore = MoveClassifier.getMaterialScore(prevPos);
+                int matAfter = MoveClassifier.getMaterialScore(currPos);
+                int moverMatChange = whiteWins ? (matAfter - matBefore) : (matBefore - matAfter);
+                if (moverMatChange <= -200) {
+                    isPieceSacrifice = true;
+                }
+            }
+            MoveClassification mc = isPieceSacrifice ? MoveClassification.BRILLIANT : MoveClassification.BEST;
+            currNode.moveClassification = mc;
+            cb.setMoveClassification(lastMove, mc);
+            return;
+        }
+
+        boolean isStalemate = (gameState == Game.GameState.WHITE_STALEMATE || gameState == Game.GameState.BLACK_STALEMATE);
+        if (!isStalemate && currPos != null && !MoveGen.inCheck(currPos) && MoveGen.instance.legalMoves(currPos).isEmpty()) {
+            isStalemate = true;
+        }
+        if (isStalemate) {
+            currNode.evalScore = 0;
+            currNode.evalIsMate = false;
+            currNode.evalMateMoves = 0;
+            hasEval = true;
+        }
+
         if (!hasEval || currNode.evalScore == Integer.MIN_VALUE) {
             if (currNode.moveClassification != null) {
                 cb.setMoveClassification(lastMove, currNode.moveClassification);
@@ -2258,9 +2379,6 @@ public class DroidFish extends AppCompatActivity
             isBestMove = true;
         }
 
-        Position currPos = ctrl.getGame().currPos();
-        Position prevPos = ctrl.getGame().prevPos();
-
         int evalBefore;
         boolean mateBefore = false;
         int mateMovesBefore = 0;
@@ -2268,7 +2386,6 @@ public class DroidFish extends AppCompatActivity
         int evalAfter = currNode.evalScore;
         boolean mateAfter = currNode.evalIsMate;
         int mateMovesAfter = currNode.evalMateMoves;
-        boolean isWhite = (currPos != null) ? !currPos.whiteMove : true;
 
         if (parentNode != null && parentNode.evalScore != Integer.MIN_VALUE) {
             evalBefore = parentNode.evalScore;
@@ -2301,6 +2418,20 @@ public class DroidFish extends AppCompatActivity
             }
         }
 
+        // Check for second-best move evaluation for Great Move detection
+        boolean hasSecondScore = false;
+        int secondScore = 0;
+        boolean secondIsMate = false;
+        int secondMateMoves = 0;
+        if (parentNode != null && parentNode.hasSecondScore) {
+            if (prevPos == null || MoveGen.instance.legalMoves(prevPos).size() > 1) {
+                hasSecondScore = true;
+                secondScore = parentNode.secondScore;
+                secondIsMate = parentNode.secondIsMate;
+                secondMateMoves = parentNode.secondMateMoves;
+            }
+        }
+
         // PGN NAG override if present
         MoveClassification nagClass = null;
         if (currNode.nag > 0) {
@@ -2327,7 +2458,11 @@ public class DroidFish extends AppCompatActivity
                 evalBefore, mateBefore, mateMovesBefore,
                 evalAfter, mateAfter, mateMovesAfter,
                 isPieceSacrifice,
-                moverMatChange
+                moverMatChange,
+                hasSecondScore,
+                secondScore,
+                secondIsMate,
+                secondMateMoves
             );
         }
         currNode.moveClassification = mc;

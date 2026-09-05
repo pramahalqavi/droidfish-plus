@@ -95,8 +95,8 @@ Als uw telefoon op batterij werkt is het aan te raden om deze instellingen te wi
     <string name="no_pgn_files">Geen bestanden gevonden in de DroidFish/pgn directory op SD kaart</string>
     <string name="no_fen_files">Geen bestanden gevonden in de map DroidFish/epd op de SD</string>
     <string name="select_color_theme">Selecteer kleurenschema</string>
-    <string name="colortheme_original">Orgineel</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Blauw</string>
     <string name="colortheme_grey">Grijs</string>
     <string name="colortheme_scid_default">Scid standaard</string>

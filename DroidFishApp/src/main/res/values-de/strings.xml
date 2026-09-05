@@ -95,8 +95,8 @@ Um gegebenenfalls Strom zu sparen, ist es empfehlenswert, dass Sie diese Paramet
     <string name="no_pgn_files">Keine Dateien im Verzeichnis DroidFish/pgn auf der SD-Karte gefunden</string>
     <string name="no_fen_files">Keine Dateien im Verzeichnis DroidFish/epd auf der SD-Karte gefunden</string>
     <string name="select_color_theme">Farbschema auswählen</string>
-    <string name="colortheme_original">Original</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Blau</string>
     <string name="colortheme_grey">Grau</string>
     <string name="colortheme_scid_default">Scid Standard</string>

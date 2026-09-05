@@ -95,8 +95,8 @@ Lorsque que vous êtes sur batterie, il est recommandé de changer les paramètr
     <string name="no_pgn_files">Aucun fichier trouvé dans le répertoire DroidFish/pgn de la carte SD</string>
     <string name="no_fen_files">Aucun fichier trouvé dans le répertoire DroidFish/epd de la carte SD</string>
     <string name="select_color_theme">Sélectionner le thème de couleur</string>
-    <string name="colortheme_original">Original</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Bleu</string>
     <string name="colortheme_grey">Gris</string>
     <string name="colortheme_scid_default">Scid par défaut</string>

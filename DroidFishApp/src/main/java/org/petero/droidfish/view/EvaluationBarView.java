@@ -149,10 +149,14 @@ public class EvaluationBarView extends View {
 
     private float calculateTargetRatio() {
         if (!hasScore) {
-            return 0.5f;
+            return targetRatio;
         }
         if (isMate) {
-            return mateMoves > 0 ? 1.0f : 0.0f;
+            if (mateMoves > 0 || (mateMoves == 0 && whiteScore > 0)) {
+                return 1.0f;
+            } else {
+                return 0.0f;
+            }
         }
         // Sigmoid winning probability: P = 1 / (1 + exp(-0.00368208 * whiteScore))
         double p = 1.0 / (1.0 + Math.exp(-0.00368208 * whiteScore));
@@ -166,6 +170,9 @@ public class EvaluationBarView extends View {
             return "";
         }
         if (isMate) {
+            if (mateMoves == 0) {
+                return (whiteScore > 0) ? "1-0" : "0-1";
+            }
             return (mateMoves > 0) ? ("+M" + mateMoves) : ("-M" + (-mateMoves));
         }
         double pawns = whiteScore / 100.0;
@@ -210,7 +217,7 @@ public class EvaluationBarView extends View {
             float textY = (h - fm.bottom - fm.top) / 2.0f;
             float padding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics());
 
-            boolean whiteWinning = (isMate && mateMoves > 0) || (!isMate && whiteScore >= 0);
+            boolean whiteWinning = (isMate && (mateMoves > 0 || (mateMoves == 0 && whiteScore > 0))) || (!isMate && whiteScore >= 0);
             if (!flipped) {
                 // White on left, Black on right
                 if (whiteWinning) {

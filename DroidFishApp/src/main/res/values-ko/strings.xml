@@ -99,8 +99,8 @@ DroidFish는 백그라운드에 실행 중인 상태에서 다음과 같이 설�
     <string name="no_pgn_files">SD 카드의 DroidFish/pgn 디렉토리에 파일이 없습니다</string>
     <string name="no_fen_files">SD 카드의 DroidFish/epd 디렉토리에 파일이 없습니다</string>
     <string name="select_color_theme">색상 테마 선택</string>
-    <string name="colortheme_original">오리지널</string>
-    <string name="colortheme_xboard">엑스보드</string>
+
+
     <string name="colortheme_blue">블루</string>
     <string name="colortheme_grey">그레이</string>
     <string name="colortheme_scid_default">Scid 디폴트</string>

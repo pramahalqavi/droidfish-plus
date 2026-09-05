@@ -1089,6 +1089,11 @@ public class DroidComputerPlayer {
             return;
 
         int id = engineState.searchId;
+        if (pvModified) {
+            listener.notifyPV(id, searchRequest.currPos, statPvInfo,
+                              searchRequest.ponderMove);
+            pvModified = false;
+        }
         if (depthModified) {
             listener.notifyDepth(id, statCurrDepth);
             depthModified = false;
@@ -1103,11 +1108,6 @@ public class DroidComputerPlayer {
             }
             listener.notifyCurrMove(id, pos, m, statCurrMoveNr);
             currMoveModified = false;
-        }
-        if (pvModified) {
-            listener.notifyPV(id, searchRequest.currPos, statPvInfo,
-                              searchRequest.ponderMove);
-            pvModified = false;
         }
         if (statsModified) {
             listener.notifyStats(id, statNodes, statNps, statTBHits, statHash, statTime, statSelDepth);

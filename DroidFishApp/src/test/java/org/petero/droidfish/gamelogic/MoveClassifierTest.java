@@ -210,6 +210,50 @@ public class MoveClassifierTest {
     }
 
     @Test
+    public void testGreatMoveOnlyMoveHoldingWin() {
+        // Example like Game 1 Move 24 Rc7: Was winning (+236 cp, w=0.70), played best move (+238 cp, w=0.71).
+        // Second best move dropped to 0 cp (equal, w=0.50). Gap = 236 cp. -> GREAT MOVE!
+        MoveClassification mc = MoveClassifier.classify(
+            false, true, true, 236, false, 0, 238, false, 0, false, 0,
+            true, 0, false, 0
+        );
+        assertEquals(MoveClassification.GREAT, mc);
+    }
+
+    @Test
+    public void testGreatMoveOnlyMoveSavingEqual() {
+        // Example like Game 1 Move 20 Ba1: Was around equal (-27 cp, w=0.475), played best move (-23 cp, w=0.479).
+        // Second best move dropped to -118 cp (losing, w=0.395). Gap = 91 cp. -> GREAT MOVE!
+        MoveClassification mc = MoveClassifier.classify(
+            false, true, true, -27, false, 0, -23, false, 0, false, 0,
+            true, -118, false, 0
+        );
+        assertEquals(MoveClassification.GREAT, mc);
+    }
+
+    @Test
+    public void testGreatMoveAvoidingForcedMate() {
+        // Position was equal/drawn (0 cp), played best move (0 cp).
+        // Second-best move allows mate in 2 against mover (-mate 2). -> GREAT MOVE!
+        MoveClassification mc = MoveClassifier.classify(
+            false, true, true, 0, false, 0, 0, false, 0, false, 0,
+            true, 0, true, -2
+        );
+        assertEquals(MoveClassification.GREAT, mc);
+    }
+
+    @Test
+    public void testBestMoveWhenMultipleGoodMoves() {
+        // Position was winning (+200 cp), played best move (+200 cp).
+        // Second-best move was +180 cp (gap only 20 cp, both easily winning). -> BEST (not Great)!
+        MoveClassification mc = MoveClassifier.classify(
+            false, true, true, 200, false, 0, 200, false, 0, false, 0,
+            true, 180, false, 0
+        );
+        assertEquals(MoveClassification.BEST, mc);
+    }
+
+    @Test
     public void testGetMaterialScore() throws ChessParseError {
         Position pos = TextIO.readFEN(TextIO.startPosFEN);
         int mat = MoveClassifier.getMaterialScore(pos);

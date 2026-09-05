@@ -95,8 +95,8 @@
     <string name="no_pgn_files">在 SD 卡的 DroidFish/pgn 目录中未找到文件</string>
     <string name="no_fen_files">在 SD 卡的 DroidFish/epd 目录中未找到文件</string>
     <string name="select_color_theme">选择颜色主题</string>
-    <string name="colortheme_original">原始</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">蓝色</string>
     <string name="colortheme_grey">灰色</string>
     <string name="colortheme_scid_default">Scid 默认</string>

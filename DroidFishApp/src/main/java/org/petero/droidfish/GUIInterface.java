@@ -63,6 +63,10 @@ public interface GUIInterface {
         public int whiteScore;
         public boolean isMate;
         public int mateMoves;
+        public boolean hasSecondScore = false;
+        public int secondScore = 0;
+        public boolean secondIsMate = false;
+        public int secondMateMoves = 0;
     }
 
     /** Update the computer thinking information. */

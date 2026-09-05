@@ -95,8 +95,8 @@ Pil gücüyle çalışıyorsanız, pil gücünden tasarruf etmek için ayarları
     <string name="no_pgn_files">Hafıza/DroidFish/pgn dizininde dosya yok</string>
     <string name="no_fen_files">Hafıza/DroidFish/epd dizininde dosya yok</string>
     <string name="select_color_theme">Renk temasını seç</string>
-    <string name="colortheme_original">Orjinal</string>
-    <string name="colortheme_xboard">XBoard</string>
+
+
     <string name="colortheme_blue">Mavi</string>
     <string name="colortheme_grey">Gri</string>
     <string name="colortheme_scid_default">Scid Varsayılan</string>
